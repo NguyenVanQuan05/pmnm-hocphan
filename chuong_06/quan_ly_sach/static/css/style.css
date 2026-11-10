@@ -1,9 +1,5 @@
-/* Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân */
-
-/* ===== Khung trang ===== */
 * { box-sizing: border-box; }
 body {
-    /* Cột dọc cao bằng màn hình: main giãn ra, footer luôn ở đáy */
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -14,7 +10,6 @@ body {
     font-size: 16px;
     line-height: 1.5;
 }
-/* Giới hạn bề rộng nội dung và căn giữa */
 .container {
     width: 100%;
     max-width: 900px;
@@ -26,11 +21,10 @@ h1 { margin: 0 0 24px; font-size: 40px; font-weight: 500; line-height: 1.2; }
 a { color: #0d6efd; }
 .muted { color: #6c757d; }
 
-/* ===== Thanh menu ===== */
 .navbar { background: #0d6efd; }
 .navbar-inner {
     display: flex;
-    flex-wrap: wrap;            /* màn hình hẹp: menu xuống dòng */
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     padding-top: 16px;
@@ -39,14 +33,13 @@ a { color: #0d6efd; }
 .brand { color: white; font-size: 22px; text-decoration: none; }
 .nav-links { display: flex; gap: 20px; }
 .nav-link {
-    color: #ffffffa6;           /* trắng mờ */
+    color: #ffffffa6;
     font-size: 18px;
     text-decoration: none;
 }
 .nav-link:hover { color: #ffffffd9; }
 .nav-link.active { color: white; }
 
-/* ===== Thông báo flash ===== */
 .flash {
     margin: 0 0 16px;
     padding: 12px 16px;
@@ -56,7 +49,6 @@ a { color: #0d6efd; }
     color: #052c65;
 }
 
-/* ===== Bảng ===== */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -71,7 +63,6 @@ th { background: #f8f9fa; font-weight: 600; }
 .center { text-align: center; }
 .stt { width: 60px; text-align: center; }
 
-/* ===== Form ===== */
 form { margin: 0; }
 label { display: block; }
 input, select, textarea, button { font: inherit; }
@@ -92,7 +83,6 @@ input:focus, select:focus, textarea:focus {
 .error { margin: 4px 0 0; color: #dc3545; font-size: 14px; }
 .actions { margin-top: 16px; }
 
-/* Nút bấm; class "button" dùng cho thẻ <a> trông như nút */
 button, .button, .actions input[type="submit"] {
     display: inline-block;
     width: auto;
@@ -105,7 +95,6 @@ button, .button, .actions input[type="submit"] {
     cursor: pointer;
 }
 button:hover, .button:hover, .actions input[type="submit"]:hover { background: #0b5ed7; }
-/* Biến thể nút: viết SAU để đè màu mặc định ở trên */
 .button-light { background: #6c757d; }
 .button-light:hover { background: #5c636a; }
 .button-danger { background: #dc3545; }
@@ -113,7 +102,6 @@ button:hover, .button:hover, .actions input[type="submit"]:hover { background: #
 .button-small { padding: 3px 10px; font-size: 14px; }
 textarea { min-height: 100px; resize: vertical; }
 
-/* ===== Khối nội dung, thanh nút ===== */
 h2 { margin: 24px 0 12px; font-size: 22px; font-weight: 500; }
 .card {
     margin-bottom: 20px;
@@ -123,7 +111,6 @@ h2 { margin: 24px 0 12px; font-size: 22px; font-weight: 500; }
     background: white;
 }
 .info-label { margin: 0 0 4px; color: #6c757d; font-size: 14px; }
-/* Hàng nút nằm ngang, form xoá đứng cạnh các link */
 .toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -133,24 +120,18 @@ h2 { margin: 24px 0 12px; font-size: 22px; font-weight: 500; }
 }
 .card .toolbar { margin: 16px 0 0; }
 .row-actions { display: flex; justify-content: center; gap: 6px; }
-/* Bảng rộng hơn màn hình điện thoại thì cuộn ngang trong khung này */
 .table-wrap { overflow-x: auto; }
 
-/* ===== Trang sách ===== */
-/* Thanh lọc: mục đang chọn in đậm, màu chữ thường, không gạch chân */
 .filter-bar { margin: 0 0 16px; color: #6c757d; }
 .filter-bar a.selected { color: #212529; font-weight: 700; text-decoration: none; }
-/* Chi tiết sách: 2 cột nhãn | giá trị */
 .info-grid {
     display: grid;
     grid-template-columns: 140px 1fr;
     gap: 8px 16px;
 }
 .info-grid p { margin: 0; }
-/* Năm XB và Số lượng đứng cạnh nhau */
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-/* ===== Footer ===== */
 .site-footer {
     padding: 16px;
     border-top: 1px solid #dee2e6;
@@ -158,8 +139,6 @@ h2 { margin: 24px 0 12px; font-size: 22px; font-weight: 500; }
     text-align: center;
 }
 
-/* ===== Dashboard ===== */
-/* 4 ô thống kê chia đều 4 cột */
 .stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -173,20 +152,18 @@ h2 { margin: 24px 0 12px; font-size: 22px; font-weight: 500; }
 }
 .stat-number { margin: 0; color: #0d6efd; font-size: 32px; font-weight: 600; line-height: 1.2; }
 .stat-label { margin: 4px 0 0; color: #6c757d; }
-/* Thanh tỉ lệ: nền xám (.progress) chứa phần xanh (.progress-bar) rộng theo % */
 .progress-cell { display: flex; align-items: center; gap: 8px; }
 .progress {
     flex: 1;
     min-width: 80px;
     height: 10px;
-    overflow: hidden;           /* cắt phần xanh theo góc bo */
+    overflow: hidden;
     border-radius: 5px;
     background: #e9ecef;
 }
 .progress-bar { height: 100%; background: #0d6efd; }
 .percent { width: 42px; color: #6c757d; font-size: 14px; text-align: right; }
 
-/* ===== Màn hình nhỏ ===== */
 @media (max-width: 576px) {
     .stats { grid-template-columns: repeat(2, 1fr); }
     h1 { font-size: 30px; }

@@ -4,7 +4,6 @@
 {% block title %}Không tìm thấy trang{% endblock %}
 
 {% block content %}
-    {# description là nội dung truyền vào abort(404, description=...) #}
     <p class="muted">{{ error.description }}</p>
     <p><a class="button" href="{{ url_for('dashboard') }}">Về Dashboard</a></p>
 {% endblock %}

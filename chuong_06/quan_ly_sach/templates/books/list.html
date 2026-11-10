@@ -4,7 +4,6 @@
 {% block title %}Danh sách sách{% endblock %}
 
 {% block content %}
-    {# Thanh lọc giống chương 3: Tất cả | từng danh mục; mục đang chọn tô đậm #}
     <p class="filter-bar">
         Lọc theo danh mục:
         <a class="{{ 'selected' if not selected_category_id else '' }}"
@@ -17,7 +16,6 @@
     </p>
 
     <p class="toolbar">
-        {# Đang lọc thì nút Thêm chọn sẵn danh mục đó (None thì url_for bỏ qua tham số) #}
         <a class="button" href="{{ url_for('book_create', category_id=selected_category_id) }}">+ Thêm sách</a>
     </p>
 

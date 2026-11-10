@@ -1,12 +1,10 @@
 {# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
-{# Dùng chung cho Thêm và Sửa: view truyền vào title và cancel_url #}
 {% extends "base.html" %}
 {% from "_macros.html" import render_field %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-    {# Không ghi action => form gửi về chính URL đang mở (giữ cả ?category_id=) #}
     <form class="card" method="post" novalidate>
         {{ form.hidden_tag() }}
         {{ render_field(form.title) }}
