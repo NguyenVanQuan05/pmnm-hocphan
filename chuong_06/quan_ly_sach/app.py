@@ -1,4 +1,3 @@
-# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân
 import os
 
 import click
@@ -9,9 +8,7 @@ from forms import BookForm, CategoryForm, DeleteForm
 from models import Book, Category, db
 
 app = Flask(__name__)
-# Đọc SECRET_KEY từ biến môi trường; giá trị dự phòng chỉ dùng khi phát triển
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-chi-dung-khi-phat-trien")
-# File CSDL nằm trong thư mục instance/
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///library.db"
 db.init_app(app)
 
@@ -47,14 +44,12 @@ SAMPLE_DATA = {
 
 
 def clean_text(value):
-    # Bỏ khoảng trắng đầu/cuối; chuỗi rỗng hoặc None thì trả None (lưu NULL)
     if value is None:
         return None
     return value.strip() or None
 
 
 def load_category_choices(form):
-    # Nạp danh mục vào SelectField; phải gọi TRƯỚC validate_on_submit()
     categories = db.session.execute(
         db.select(Category).order_by(Category.name)).scalars().all()
     form.category_id.choices = [(0, "-- Chọn danh mục --")]
@@ -65,7 +60,6 @@ def load_category_choices(form):
 
 @app.context_processor
 def inject_helpers():
-    # Trả "active" nếu đang ở đúng trang, dùng để tô màu menu
     def is_active(endpoint):
         if request.endpoint == endpoint:
             return "active"
@@ -75,18 +69,13 @@ def inject_helpers():
 
 @app.route("/")
 def dashboard():
-    # --- 4 ô thống kê: mỗi số là một câu SELECT trả về 1 giá trị ---
     total_categories = db.session.scalar(db.select(func.count(Category.id)))
     total_books = db.session.scalar(db.select(func.count(Book.id)))
-    # SUM trên bảng rỗng trả NULL; coalesce(NULL, 0) đổi thành 0
     total_copies = db.session.scalar(
         db.select(func.coalesce(func.sum(Book.quantity), 0)))
     out_of_stock = db.session.scalar(
         db.select(func.count(Book.id)).where(Book.quantity == 0))
 
-    # --- Số sách theo danh mục: MỘT câu truy vấn ---
-    # OUTER JOIN giữ cả danh mục chưa có sách (phía Book là NULL)
-    # count(Book.id) bỏ qua NULL nên danh mục rỗng được đếm là 0
     stmt = (db.select(Category, func.count(Book.id))
             .outerjoin(Book, Book.category_id == Category.id)
             .group_by(Category.id)
@@ -95,7 +84,6 @@ def dashboard():
 
     category_stats = []
     for category, book_count in rows:
-        # Tránh chia cho 0 khi chưa có cuốn sách nào
         if total_books > 0:
             percent = round(book_count * 100 / total_books)
         else:
@@ -106,7 +94,6 @@ def dashboard():
             "percent": percent,
         })
 
-    # --- 5 sách mới thêm; id giảm dần để phân thứ tự khi trùng thời điểm ---
     recent_books = db.session.execute(
         db.select(Book)
         .order_by(Book.created_at.desc(), Book.id.desc())
@@ -121,7 +108,6 @@ def dashboard():
                            recent_books=recent_books)
 
 
-# ===== CRUD danh mục =====
 
 @app.route("/categories")
 def category_list():
@@ -165,7 +151,6 @@ def category_create():
 def category_edit(category_id):
     category = db.get_or_404(Category, category_id,
                              description=f"Không có danh mục với id = {category_id}.")
-    # obj=category: điền sẵn dữ liệu cũ vào form khi mở trang (GET)
     form = CategoryForm(obj=category)
     form.editing_id = category.id
 
@@ -187,7 +172,6 @@ def category_delete(category_id):
                              description=f"Không có danh mục với id = {category_id}.")
     form = DeleteForm()
 
-    # validate_on_submit ở đây chính là bước kiểm tra CSRF token
     if not form.validate_on_submit():
         flash("Yêu cầu không hợp lệ, vui lòng thử lại.")
         return redirect(url_for("category_list"))
@@ -203,11 +187,9 @@ def category_delete(category_id):
     return redirect(url_for("category_list"))
 
 
-# ===== CRUD sách =====
 
 @app.route("/books")
 def book_list():
-    # type=int: "2" -> 2; thiếu hoặc không phải số -> None (hiện tất cả)
     selected_category_id = request.args.get("category_id", type=int)
 
     stmt = db.select(Book).order_by(Book.title)
@@ -235,7 +217,6 @@ def book_detail(book_id):
 
 @app.route("/books/new", methods=["GET", "POST"])
 def book_create():
-    # ?category_id=2 trên URL -> chọn sẵn danh mục đó khi mở form (GET)
     form = BookForm(category_id=request.args.get("category_id", type=int))
     categories = load_category_choices(form)
 
@@ -289,7 +270,6 @@ def book_delete(book_id):
                          description=f"Không có sách với id = {book_id}.")
     form = DeleteForm()
 
-    # validate_on_submit ở đây chính là bước kiểm tra CSRF token
     if not form.validate_on_submit():
         flash("Yêu cầu không hợp lệ, vui lòng thử lại.")
         return redirect(url_for("book_list"))
@@ -302,7 +282,6 @@ def book_delete(book_id):
 
 @app.errorhandler(404)
 def page_not_found(error):
-    # Trả template riêng kèm mã 404 (nếu không ghi, mặc định là 200)
     return render_template("404.html", error=error), 404
 
 
