@@ -1,0 +1,122 @@
+/* Đã hiểu và chỉnh sửa – Nguyễn Văn Quân */
+
+/* ===== Khung trang ===== */
+* { box-sizing: border-box; }
+body {
+    /* Cột dọc cao bằng màn hình: main giãn ra, footer luôn ở đáy */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    background: #f5f6f8;
+    color: #212529;
+    font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+}
+/* Giới hạn bề rộng nội dung và căn giữa */
+.container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+main { flex: 1; padding-top: 24px; padding-bottom: 24px; }
+h1 { margin: 0 0 24px; font-size: 40px; font-weight: 500; line-height: 1.2; }
+a { color: #0d6efd; }
+.muted { color: #6c757d; }
+
+/* ===== Thanh menu ===== */
+.navbar { background: #0d6efd; }
+.navbar-inner {
+    display: flex;
+    flex-wrap: wrap;            /* màn hình hẹp: menu xuống dòng */
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+.brand { color: white; font-size: 22px; text-decoration: none; }
+.nav-links { display: flex; gap: 20px; }
+.nav-link {
+    color: #ffffffa6;           /* trắng mờ */
+    font-size: 18px;
+    text-decoration: none;
+}
+.nav-link:hover { color: #ffffffd9; }
+.nav-link.active { color: white; }
+
+/* ===== Thông báo flash ===== */
+.flash {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border: 1px solid #9ec5fe;
+    border-radius: 6px;
+    background: #cfe2ff;
+    color: #052c65;
+}
+
+/* ===== Bảng ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+th, td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #dee2e6;
+    text-align: left;
+}
+th { background: #f8f9fa; font-weight: 600; }
+.center { text-align: center; }
+.stt { width: 60px; text-align: center; }
+
+/* ===== Form ===== */
+form { margin: 0; }
+label { display: block; }
+input, select, textarea, button { font: inherit; }
+input, select, textarea {
+    width: 100%;
+    padding: 6px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    background: white;
+    color: #212529;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: #86b7fe;
+    outline: 3px solid #0d6efd40;
+}
+.field { margin-bottom: 16px; }
+.field label { margin-bottom: 6px; font-weight: 500; }
+.error { margin: 4px 0 0; color: #dc3545; font-size: 14px; }
+.actions { margin-top: 16px; }
+
+/* Nút bấm; class "button" dùng cho thẻ <a> trông như nút */
+button, .button, .actions input[type="submit"] {
+    display: inline-block;
+    width: auto;
+    padding: 6px 14px;
+    border: 0;
+    border-radius: 6px;
+    background: #0d6efd;
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+}
+button:hover, .button:hover, .actions input[type="submit"]:hover { background: #0b5ed7; }
+
+/* ===== Footer ===== */
+.site-footer {
+    padding: 16px;
+    border-top: 1px solid #dee2e6;
+    color: #6c757d;
+    text-align: center;
+}
+
+/* ===== Màn hình nhỏ ===== */
+@media (max-width: 576px) {
+    h1 { font-size: 30px; }
+    .navbar-inner { gap: 8px; }
+    th, td { padding: 6px 8px; }
+}

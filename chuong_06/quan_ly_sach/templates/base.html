@@ -1,0 +1,28 @@
+{# Đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %} – Quản lý sách</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% include "_navbar.html" %}
+
+    <main class="container">
+        {# self.title() in lại nội dung block title làm tiêu đề trang #}
+        <h1>{{ self.title() }}</h1>
+
+        {% for message in get_flashed_messages() %}
+            <p class="flash">{{ message }}</p>
+        {% endfor %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        Bài tập Phần mềm Mã nguồn mở – Nguyễn Văn Quân
+    </footer>
+</body>
+</html>

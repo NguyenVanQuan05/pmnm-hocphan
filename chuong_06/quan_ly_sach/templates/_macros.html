@@ -1,0 +1,11 @@
+{# Đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
+{# Hiển thị một ô của form: nhãn, ô nhập và các lỗi (nếu có) #}
+{% macro render_field(field) %}
+    <div class="field">
+        {{ field.label }}
+        {{ field() }}
+        {% for error in field.errors %}
+            <p class="error">{{ error }}</p>
+        {% endfor %}
+    </div>
+{% endmacro %}

@@ -2,20 +2,18 @@
 import os
 
 import click
-from flask import Flask
+from flask import Flask, abort, render_template, request
+from sqlalchemy import func
 
 from models import Book, Category, db
 
 app = Flask(__name__)
-
-# SECRET_KEY đọc từ biến môi trường; giá trị dự phòng chỉ dùng khi phát triển
+# Đọc SECRET_KEY từ biến môi trường; giá trị dự phòng chỉ dùng khi phát triển
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-chi-dung-khi-phat-trien")
-# Đường dẫn tương đối => Flask-SQLAlchemy đặt file trong thư mục instance/
+# File CSDL nằm trong thư mục instance/
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///library.db"
-
 db.init_app(app)
 
-# Tạo các bảng nếu chưa có (không xoá dữ liệu cũ)
 with app.app_context():
     db.create_all()
 
@@ -47,32 +45,61 @@ SAMPLE_DATA = {
 }
 
 
+@app.context_processor
+def inject_helpers():
+    # Trả "active" nếu đang ở đúng trang, dùng để tô màu menu
+    def is_active(endpoint):
+        if request.endpoint == endpoint:
+            return "active"
+        return ""
+    return {"is_active": is_active}
+
+
+@app.route("/")
+def dashboard():
+    # Tạm thời chỉ có tiêu đề, bước 5 mới thêm thống kê
+    return render_template("dashboard.html")
+
+
+# Route giữ chỗ để menu gọi url_for được; bước 3, 4 sẽ thay thế
+@app.route("/categories")
+def category_list():
+    abort(404, description="Trang danh mục sẽ làm ở bước 3.")
+
+
+@app.route("/books")
+def book_list():
+    abort(404, description="Trang sách sẽ làm ở bước 4.")
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    # Trả template riêng kèm mã 404 (nếu không ghi, mặc định là 200)
+    return render_template("404.html", error=error), 404
+
+
 @app.cli.command("seed")
 def seed_data():
     """Tạo dữ liệu mẫu: 3 danh mục, 8 sách."""
-    existing_category = db.session.scalar(db.select(Category))
-    if existing_category is not None:
-        click.echo("CSDL đã có dữ liệu, bỏ qua seed.")
+    total = db.session.scalar(db.select(func.count(Category.id)))
+    if total > 0:
+        click.echo(f"Đã có {total} danh mục, không thêm nữa.")
         return
 
     book_count = 0
     for category_name, category_info in SAMPLE_DATA.items():
-        category = Category(
-            name=category_name,
-            description=category_info["description"],
-        )
+        category = Category(name=category_name,
+                            description=category_info["description"])
         db.session.add(category)
 
         for book_info in category_info["books"]:
-            book = Book(
-                title=book_info["title"],
-                author=book_info["author"],
-                year=book_info["year"],
-                quantity=book_info["quantity"],
-                category=category,
-            )
+            book = Book(title=book_info["title"],
+                        author=book_info["author"],
+                        year=book_info["year"],
+                        quantity=book_info["quantity"],
+                        category=category)
             db.session.add(book)
             book_count += 1
 
     db.session.commit()
-    click.echo(f"Đã tạo {len(SAMPLE_DATA)} danh mục và {book_count} sách.")
+    click.echo(f"Đã thêm {len(SAMPLE_DATA)} danh mục và {book_count} sách.")
