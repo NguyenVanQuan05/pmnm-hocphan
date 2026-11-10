@@ -1,4 +1,3 @@
-# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân
 from datetime import date
 
 from flask_wtf import FlaskForm
