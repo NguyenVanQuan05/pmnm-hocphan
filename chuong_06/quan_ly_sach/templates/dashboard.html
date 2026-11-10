@@ -1,8 +1,96 @@
 {# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
+{# Mọi con số đã tính sẵn trong view; template chỉ hiển thị #}
 {% extends "base.html" %}
 
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-    {# Bước 5 sẽ thêm thống kê, bảng theo danh mục và sách mới thêm #}
+    <p class="toolbar">
+        <a class="button" href="{{ url_for('category_create') }}">+ Thêm danh mục</a>
+        <a class="button" href="{{ url_for('book_create') }}">+ Thêm sách</a>
+    </p>
+
+    <div class="stats">
+        <div class="stat-card">
+            <p class="stat-number">{{ total_categories }}</p>
+            <p class="stat-label">Danh mục</p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-number">{{ total_books }}</p>
+            <p class="stat-label">Đầu sách</p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-number">{{ total_copies }}</p>
+            <p class="stat-label">Tổng số cuốn</p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-number">{{ out_of_stock }}</p>
+            <p class="stat-label">Đầu sách đã hết</p>
+        </div>
+    </div>
+
+    <h2>Sách theo danh mục</h2>
+    <div class="table-wrap">
+        <table>
+            <tr>
+                <th class="stt">STT</th>
+                <th>Danh mục</th>
+                <th class="center">Số đầu sách</th>
+                <th>Tỉ lệ</th>
+                <th class="center">Thao tác</th>
+            </tr>
+            {% for item in category_stats %}
+                <tr>
+                    <td class="stt">{{ loop.index }}</td>
+                    <td>
+                        <a href="{{ url_for('category_detail', category_id=item.category.id) }}">{{ item.category.name }}</a>
+                    </td>
+                    <td class="center">{{ item.book_count }}</td>
+                    <td>
+                        {# Thanh tỉ lệ: div ngoài là nền xám, div trong rộng theo % #}
+                        <div class="progress-cell">
+                            <div class="progress">
+                                <div class="progress-bar" style="width: {{ item.percent }}%"></div>
+                            </div>
+                            <span class="percent">{{ item.percent }}%</span>
+                        </div>
+                    </td>
+                    <td class="center">
+                        <a class="button button-small"
+                           href="{{ url_for('book_create', category_id=item.category.id) }}">+ Thêm sách</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="center">Chưa có danh mục nào.</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <h2>5 sách mới thêm</h2>
+    <div class="table-wrap">
+        <table>
+            <tr>
+                <th class="stt">STT</th>
+                <th>Tên sách</th>
+                <th>Tác giả</th>
+                <th>Danh mục</th>
+                <th class="center">Ngày thêm</th>
+            </tr>
+            {% for book in recent_books %}
+                <tr>
+                    <td class="stt">{{ loop.index }}</td>
+                    <td><a href="{{ url_for('book_detail', book_id=book.id) }}">{{ book.title }}</a></td>
+                    <td>{{ book.author }}</td>
+                    <td>{{ book.category.name }}</td>
+                    <td class="center">{{ book.created_at.strftime("%d/%m/%Y") }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="center">Chưa có sách nào.</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
 {% endblock %}

@@ -75,8 +75,50 @@ def inject_helpers():
 
 @app.route("/")
 def dashboard():
-    # Tạm thời chỉ có tiêu đề, bước 5 mới thêm thống kê
-    return render_template("dashboard.html")
+    # --- 4 ô thống kê: mỗi số là một câu SELECT trả về 1 giá trị ---
+    total_categories = db.session.scalar(db.select(func.count(Category.id)))
+    total_books = db.session.scalar(db.select(func.count(Book.id)))
+    # SUM trên bảng rỗng trả NULL; coalesce(NULL, 0) đổi thành 0
+    total_copies = db.session.scalar(
+        db.select(func.coalesce(func.sum(Book.quantity), 0)))
+    out_of_stock = db.session.scalar(
+        db.select(func.count(Book.id)).where(Book.quantity == 0))
+
+    # --- Số sách theo danh mục: MỘT câu truy vấn ---
+    # OUTER JOIN giữ cả danh mục chưa có sách (phía Book là NULL)
+    # count(Book.id) bỏ qua NULL nên danh mục rỗng được đếm là 0
+    stmt = (db.select(Category, func.count(Book.id))
+            .outerjoin(Book, Book.category_id == Category.id)
+            .group_by(Category.id)
+            .order_by(Category.name))
+    rows = db.session.execute(stmt).all()
+
+    category_stats = []
+    for category, book_count in rows:
+        # Tránh chia cho 0 khi chưa có cuốn sách nào
+        if total_books > 0:
+            percent = round(book_count * 100 / total_books)
+        else:
+            percent = 0
+        category_stats.append({
+            "category": category,
+            "book_count": book_count,
+            "percent": percent,
+        })
+
+    # --- 5 sách mới thêm; id giảm dần để phân thứ tự khi trùng thời điểm ---
+    recent_books = db.session.execute(
+        db.select(Book)
+        .order_by(Book.created_at.desc(), Book.id.desc())
+        .limit(5)).scalars().all()
+
+    return render_template("dashboard.html",
+                           total_categories=total_categories,
+                           total_books=total_books,
+                           total_copies=total_copies,
+                           out_of_stock=out_of_stock,
+                           category_stats=category_stats,
+                           recent_books=recent_books)
 
 
 # ===== CRUD danh mục =====

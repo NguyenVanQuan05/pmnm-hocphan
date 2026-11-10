@@ -158,8 +158,37 @@ h2 { margin: 24px 0 12px; font-size: 22px; font-weight: 500; }
     text-align: center;
 }
 
+/* ===== Dashboard ===== */
+/* 4 ô thống kê chia đều 4 cột */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+.stat-card {
+    padding: 16px 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background: white;
+}
+.stat-number { margin: 0; color: #0d6efd; font-size: 32px; font-weight: 600; line-height: 1.2; }
+.stat-label { margin: 4px 0 0; color: #6c757d; }
+/* Thanh tỉ lệ: nền xám (.progress) chứa phần xanh (.progress-bar) rộng theo % */
+.progress-cell { display: flex; align-items: center; gap: 8px; }
+.progress {
+    flex: 1;
+    min-width: 80px;
+    height: 10px;
+    overflow: hidden;           /* cắt phần xanh theo góc bo */
+    border-radius: 5px;
+    background: #e9ecef;
+}
+.progress-bar { height: 100%; background: #0d6efd; }
+.percent { width: 42px; color: #6c757d; font-size: 14px; text-align: right; }
+
 /* ===== Màn hình nhỏ ===== */
 @media (max-width: 576px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
     h1 { font-size: 30px; }
     .navbar-inner { gap: 8px; }
     th, td { padding: 6px 8px; }
