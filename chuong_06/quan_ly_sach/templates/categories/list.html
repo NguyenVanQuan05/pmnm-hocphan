@@ -29,7 +29,6 @@
                                href="{{ url_for('category_detail', category_id=category.id) }}">Xem</a>
                             <a class="button button-small"
                                href="{{ url_for('category_edit', category_id=category.id) }}">Sửa</a>
-                            {# Xoá phải dùng POST + CSRF; confirm() hỏi lại trước khi gửi #}
                             <form method="post"
                                   action="{{ url_for('category_delete', category_id=category.id) }}"
                                   onsubmit="return confirm('Bạn chắc chắn muốn xoá danh mục này?');">

@@ -1,5 +1,4 @@
 {# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
-{# Mọi con số đã tính sẵn trong view; template chỉ hiển thị #}
 {% extends "base.html" %}
 
 {% block title %}Dashboard{% endblock %}
@@ -47,7 +46,6 @@
                     </td>
                     <td class="center">{{ item.book_count }}</td>
                     <td>
-                        {# Thanh tỉ lệ: div ngoài là nền xám, div trong rộng theo % #}
                         <div class="progress-cell">
                             <div class="progress">
                                 <div class="progress-bar" style="width: {{ item.percent }}%"></div>
