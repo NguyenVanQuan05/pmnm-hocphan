@@ -1,0 +1,17 @@
+{# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
+{# Mỗi mục gọi is_active cho mọi trang thuộc nhóm đó (giống mục Bài 4 ở chương 5) #}
+<nav class="navbar">
+    <div class="container navbar-inner">
+        <a class="brand" href="{{ url_for('dashboard') }}">📚 Quản lý sách</a>
+
+        <div class="nav-links">
+            <a class="nav-link {{ is_active('dashboard') }}" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="nav-link {{ is_active('category_list') }} {{ is_active('category_detail') }}
+                      {{ is_active('category_create') }} {{ is_active('category_edit') }}"
+               href="{{ url_for('category_list') }}">Danh mục</a>
+            <a class="nav-link {{ is_active('book_list') }} {{ is_active('book_detail') }}
+                      {{ is_active('book_create') }} {{ is_active('book_edit') }}"
+               href="{{ url_for('book_list') }}">Sách</a>
+        </div>
+    </div>
+</nav>

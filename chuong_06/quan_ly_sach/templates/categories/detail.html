@@ -1,0 +1,51 @@
+{# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }}{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <p class="info-label">Mô tả</p>
+        <p>{{ category.description or "Chưa có mô tả." }}</p>
+
+        <div class="toolbar">
+            <a class="button" href="{{ url_for('category_edit', category_id=category.id) }}">Sửa</a>
+            <form method="post"
+                  action="{{ url_for('category_delete', category_id=category.id) }}"
+                  onsubmit="return confirm('Bạn chắc chắn muốn xoá danh mục này?');">
+                {{ delete_form.hidden_tag() }}
+                <button type="submit" class="button-danger">Xoá</button>
+            </form>
+            <a class="button button-light" href="{{ url_for('category_list') }}">← Danh sách danh mục</a>
+        </div>
+    </div>
+
+    <h2>Sách trong danh mục ({{ books|length }})</h2>
+    <p class="toolbar">
+        <a class="button" href="{{ url_for('book_create', category_id=category.id) }}">+ Thêm sách vào danh mục này</a>
+    </p>
+    <div class="table-wrap">
+        <table>
+            <tr>
+                <th class="stt">STT</th>
+                <th>Tên sách</th>
+                <th>Tác giả</th>
+                <th class="center">Năm XB</th>
+                <th class="center">Số lượng</th>
+            </tr>
+            {% for book in books %}
+                <tr>
+                    <td class="stt">{{ loop.index }}</td>
+                    <td><a href="{{ url_for('book_detail', book_id=book.id) }}">{{ book.title }}</a></td>
+                    <td>{{ book.author }}</td>
+                    <td class="center">{{ book.year or "–" }}</td>
+                    <td class="center">{{ book.quantity }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="center">Danh mục này chưa có sách nào.</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}

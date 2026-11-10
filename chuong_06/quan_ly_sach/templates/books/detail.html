@@ -1,0 +1,39 @@
+{# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="info-grid">
+            <p class="info-label">Tác giả</p>
+            <p>{{ book.author }}</p>
+
+            <p class="info-label">Danh mục</p>
+            <p><a href="{{ url_for('category_detail', category_id=book.category.id) }}">{{ book.category.name }}</a></p>
+
+            <p class="info-label">Năm xuất bản</p>
+            <p>{{ book.year or "–" }}</p>
+
+            <p class="info-label">Số lượng</p>
+            <p>{{ book.quantity }}</p>
+
+            <p class="info-label">Mô tả</p>
+            <p>{{ book.description or "Chưa có mô tả." }}</p>
+
+            <p class="info-label">Ngày thêm</p>
+            <p>{{ book.created_at.strftime("%d/%m/%Y %H:%M") }}</p>
+        </div>
+
+        <div class="toolbar">
+            <a class="button" href="{{ url_for('book_edit', book_id=book.id) }}">Sửa</a>
+            <form method="post"
+                  action="{{ url_for('book_delete', book_id=book.id) }}"
+                  onsubmit="return confirm('Bạn chắc chắn muốn xoá sách này?');">
+                {{ delete_form.hidden_tag() }}
+                <button type="submit" class="button-danger">Xoá</button>
+            </form>
+            <a class="button button-light" href="{{ url_for('book_list') }}">← Danh sách sách</a>
+        </div>
+    </div>
+{% endblock %}

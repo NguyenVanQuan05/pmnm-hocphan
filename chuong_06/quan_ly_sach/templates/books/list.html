@@ -1,0 +1,67 @@
+{# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
+{% extends "base.html" %}
+
+{% block title %}Danh sách sách{% endblock %}
+
+{% block content %}
+    {# Thanh lọc giống chương 3: Tất cả | từng danh mục; mục đang chọn tô đậm #}
+    <p class="filter-bar">
+        Lọc theo danh mục:
+        <a class="{{ 'selected' if not selected_category_id else '' }}"
+           href="{{ url_for('book_list') }}">Tất cả</a>
+        {% for category in categories %}
+            |
+            <a class="{{ 'selected' if category.id == selected_category_id else '' }}"
+               href="{{ url_for('book_list', category_id=category.id) }}">{{ category.name }}</a>
+        {% endfor %}
+    </p>
+
+    <p class="toolbar">
+        {# Đang lọc thì nút Thêm chọn sẵn danh mục đó (None thì url_for bỏ qua tham số) #}
+        <a class="button" href="{{ url_for('book_create', category_id=selected_category_id) }}">+ Thêm sách</a>
+    </p>
+
+    <div class="table-wrap">
+        <table>
+            <tr>
+                <th class="stt">STT</th>
+                <th>Tên sách</th>
+                <th>Tác giả</th>
+                <th>Danh mục</th>
+                <th class="center">Năm XB</th>
+                <th class="center">Số lượng</th>
+                <th class="center">Thao tác</th>
+            </tr>
+            {% for book in books %}
+                <tr>
+                    <td class="stt">{{ loop.index }}</td>
+                    <td><a href="{{ url_for('book_detail', book_id=book.id) }}">{{ book.title }}</a></td>
+                    <td>{{ book.author }}</td>
+                    <td>
+                        <a href="{{ url_for('category_detail', category_id=book.category.id) }}">{{ book.category.name }}</a>
+                    </td>
+                    <td class="center">{{ book.year or "–" }}</td>
+                    <td class="center">{{ book.quantity }}</td>
+                    <td>
+                        <div class="row-actions">
+                            <a class="button button-small button-light"
+                               href="{{ url_for('book_detail', book_id=book.id) }}">Xem</a>
+                            <a class="button button-small"
+                               href="{{ url_for('book_edit', book_id=book.id) }}">Sửa</a>
+                            <form method="post"
+                                  action="{{ url_for('book_delete', book_id=book.id) }}"
+                                  onsubmit="return confirm('Bạn chắc chắn muốn xoá sách này?');">
+                                {{ delete_form.hidden_tag() }}
+                                <button type="submit" class="button-small button-danger">Xoá</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" class="center">Không có sách nào.</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
