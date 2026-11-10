@@ -1,11 +1,11 @@
-# Đã hiểu và chỉnh sửa – Nguyễn Văn Quân
+# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân
 import os
 
 import click
-from flask import Flask, abort, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, redirect, render_template, request, url_for
 from sqlalchemy import func
 
-from forms import CategoryForm, DeleteForm
+from forms import BookForm, CategoryForm, DeleteForm
 from models import Book, Category, db
 
 app = Flask(__name__)
@@ -51,6 +51,16 @@ def clean_text(value):
     if value is None:
         return None
     return value.strip() or None
+
+
+def load_category_choices(form):
+    # Nạp danh mục vào SelectField; phải gọi TRƯỚC validate_on_submit()
+    categories = db.session.execute(
+        db.select(Category).order_by(Category.name)).scalars().all()
+    form.category_id.choices = [(0, "-- Chọn danh mục --")]
+    for category in categories:
+        form.category_id.choices.append((category.id, category.name))
+    return categories
 
 
 @app.context_processor
@@ -151,10 +161,101 @@ def category_delete(category_id):
     return redirect(url_for("category_list"))
 
 
-# Route giữ chỗ để menu gọi url_for được; bước 4 sẽ thay thế
+# ===== CRUD sách =====
+
 @app.route("/books")
 def book_list():
-    abort(404, description="Trang sách sẽ làm ở bước 4.")
+    # type=int: "2" -> 2; thiếu hoặc không phải số -> None (hiện tất cả)
+    selected_category_id = request.args.get("category_id", type=int)
+
+    stmt = db.select(Book).order_by(Book.title)
+    if selected_category_id:
+        stmt = stmt.filter_by(category_id=selected_category_id)
+    books = db.session.execute(stmt).scalars().all()
+
+    categories = db.session.execute(
+        db.select(Category).order_by(Category.name)).scalars().all()
+    delete_form = DeleteForm()
+    return render_template("books/list.html", books=books,
+                           categories=categories,
+                           selected_category_id=selected_category_id,
+                           delete_form=delete_form)
+
+
+@app.route("/books/<int:book_id>")
+def book_detail(book_id):
+    book = db.get_or_404(Book, book_id,
+                         description=f"Không có sách với id = {book_id}.")
+    delete_form = DeleteForm()
+    return render_template("books/detail.html", book=book,
+                           delete_form=delete_form)
+
+
+@app.route("/books/new", methods=["GET", "POST"])
+def book_create():
+    # ?category_id=2 trên URL -> chọn sẵn danh mục đó khi mở form (GET)
+    form = BookForm(category_id=request.args.get("category_id", type=int))
+    categories = load_category_choices(form)
+
+    if not categories:
+        flash("Chưa có danh mục nào, hãy thêm danh mục trước.")
+        return redirect(url_for("category_create"))
+
+    if form.validate_on_submit():
+        book = Book(title=form.title.data.strip(),
+                    author=form.author.data.strip(),
+                    year=form.year.data,
+                    quantity=form.quantity.data,
+                    description=clean_text(form.description.data),
+                    category_id=form.category_id.data)
+        db.session.add(book)
+        db.session.commit()
+        flash(f"Đã thêm sách “{book.title}”.")
+        return redirect(url_for("book_detail", book_id=book.id))
+
+    return render_template("books/form.html", form=form,
+                           title="Thêm sách",
+                           cancel_url=url_for("book_list"))
+
+
+@app.route("/books/<int:book_id>/edit", methods=["GET", "POST"])
+def book_edit(book_id):
+    book = db.get_or_404(Book, book_id,
+                         description=f"Không có sách với id = {book_id}.")
+    form = BookForm(obj=book)
+    load_category_choices(form)
+
+    if form.validate_on_submit():
+        book.title = form.title.data.strip()
+        book.author = form.author.data.strip()
+        book.year = form.year.data
+        book.quantity = form.quantity.data
+        book.description = clean_text(form.description.data)
+        book.category_id = form.category_id.data
+        db.session.commit()
+        flash(f"Đã cập nhật sách “{book.title}”.")
+        return redirect(url_for("book_detail", book_id=book.id))
+
+    return render_template("books/form.html", form=form,
+                           title=f"Sửa sách: {book.title}",
+                           cancel_url=url_for("book_detail", book_id=book.id))
+
+
+@app.route("/books/<int:book_id>/delete", methods=["POST"])
+def book_delete(book_id):
+    book = db.get_or_404(Book, book_id,
+                         description=f"Không có sách với id = {book_id}.")
+    form = DeleteForm()
+
+    # validate_on_submit ở đây chính là bước kiểm tra CSRF token
+    if not form.validate_on_submit():
+        flash("Yêu cầu không hợp lệ, vui lòng thử lại.")
+        return redirect(url_for("book_list"))
+
+    db.session.delete(book)
+    db.session.commit()
+    flash(f"Đã xoá sách “{book.title}”.")
+    return redirect(url_for("book_list"))
 
 
 @app.errorhandler(404)

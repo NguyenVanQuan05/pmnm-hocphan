@@ -1,4 +1,4 @@
-/* Đã hiểu và chỉnh sửa – Nguyễn Văn Quân */
+/* Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân */
 
 /* ===== Khung trang ===== */
 * { box-sizing: border-box; }
@@ -136,6 +136,20 @@ h2 { margin: 24px 0 12px; font-size: 22px; font-weight: 500; }
 /* Bảng rộng hơn màn hình điện thoại thì cuộn ngang trong khung này */
 .table-wrap { overflow-x: auto; }
 
+/* ===== Trang sách ===== */
+/* Thanh lọc: mục đang chọn in đậm, màu chữ thường, không gạch chân */
+.filter-bar { margin: 0 0 16px; color: #6c757d; }
+.filter-bar a.selected { color: #212529; font-weight: 700; text-decoration: none; }
+/* Chi tiết sách: 2 cột nhãn | giá trị */
+.info-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 8px 16px;
+}
+.info-grid p { margin: 0; }
+/* Năm XB và Số lượng đứng cạnh nhau */
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
 /* ===== Footer ===== */
 .site-footer {
     padding: 16px;
@@ -149,4 +163,5 @@ h2 { margin: 24px 0 12px; font-size: 22px; font-weight: 500; }
     h1 { font-size: 30px; }
     .navbar-inner { gap: 8px; }
     th, td { padding: 6px 8px; }
+    .info-grid, .field-row { grid-template-columns: 1fr; }
 }

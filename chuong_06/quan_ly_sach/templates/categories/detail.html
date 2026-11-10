@@ -1,4 +1,4 @@
-{# Đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
+{# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
 {% extends "base.html" %}
 
 {% block title %}{{ category.name }}{% endblock %}
@@ -21,6 +21,9 @@
     </div>
 
     <h2>Sách trong danh mục ({{ books|length }})</h2>
+    <p class="toolbar">
+        <a class="button" href="{{ url_for('book_create', category_id=category.id) }}">+ Thêm sách vào danh mục này</a>
+    </p>
     <div class="table-wrap">
         <table>
             <tr>
@@ -33,7 +36,7 @@
             {% for book in books %}
                 <tr>
                     <td class="stt">{{ loop.index }}</td>
-                    <td>{{ book.title }}</td>
+                    <td><a href="{{ url_for('book_detail', book_id=book.id) }}">{{ book.title }}</a></td>
                     <td>{{ book.author }}</td>
                     <td class="center">{{ book.year or "–" }}</td>
                     <td class="center">{{ book.quantity }}</td>

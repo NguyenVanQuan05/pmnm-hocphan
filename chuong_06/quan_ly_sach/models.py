@@ -1,4 +1,4 @@
-# Đã hiểu và chỉnh sửa – Nguyễn Văn Quân
+# Có tham khảo AI (Claude Code), đã hiểu và chỉnh sửa – Nguyễn Văn Quân
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
