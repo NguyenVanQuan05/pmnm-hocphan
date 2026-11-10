@@ -2,9 +2,10 @@
 import os
 
 import click
-from flask import Flask, abort, render_template, request
+from flask import Flask, abort, flash, redirect, render_template, request, url_for
 from sqlalchemy import func
 
+from forms import CategoryForm, DeleteForm
 from models import Book, Category, db
 
 app = Flask(__name__)
@@ -45,6 +46,13 @@ SAMPLE_DATA = {
 }
 
 
+def clean_text(value):
+    # Bỏ khoảng trắng đầu/cuối; chuỗi rỗng hoặc None thì trả None (lưu NULL)
+    if value is None:
+        return None
+    return value.strip() or None
+
+
 @app.context_processor
 def inject_helpers():
     # Trả "active" nếu đang ở đúng trang, dùng để tô màu menu
@@ -61,12 +69,89 @@ def dashboard():
     return render_template("dashboard.html")
 
 
-# Route giữ chỗ để menu gọi url_for được; bước 3, 4 sẽ thay thế
+# ===== CRUD danh mục =====
+
 @app.route("/categories")
 def category_list():
-    abort(404, description="Trang danh mục sẽ làm ở bước 3.")
+    categories = db.session.execute(
+        db.select(Category).order_by(Category.name)).scalars().all()
+    delete_form = DeleteForm()
+    return render_template("categories/list.html",
+                           categories=categories, delete_form=delete_form)
 
 
+@app.route("/categories/<int:category_id>")
+def category_detail(category_id):
+    category = db.get_or_404(Category, category_id,
+                             description=f"Không có danh mục với id = {category_id}.")
+    books = db.session.execute(
+        db.select(Book).filter_by(category_id=category.id)
+        .order_by(Book.title)).scalars().all()
+    delete_form = DeleteForm()
+    return render_template("categories/detail.html", category=category,
+                           books=books, delete_form=delete_form)
+
+
+@app.route("/categories/new", methods=["GET", "POST"])
+def category_create():
+    form = CategoryForm()
+
+    if form.validate_on_submit():
+        category = Category(name=form.name.data.strip(),
+                            description=clean_text(form.description.data))
+        db.session.add(category)
+        db.session.commit()
+        flash(f"Đã thêm danh mục “{category.name}”.")
+        return redirect(url_for("category_list"))
+
+    return render_template("categories/form.html", form=form,
+                           title="Thêm danh mục",
+                           cancel_url=url_for("category_list"))
+
+
+@app.route("/categories/<int:category_id>/edit", methods=["GET", "POST"])
+def category_edit(category_id):
+    category = db.get_or_404(Category, category_id,
+                             description=f"Không có danh mục với id = {category_id}.")
+    # obj=category: điền sẵn dữ liệu cũ vào form khi mở trang (GET)
+    form = CategoryForm(obj=category)
+    form.editing_id = category.id
+
+    if form.validate_on_submit():
+        category.name = form.name.data.strip()
+        category.description = clean_text(form.description.data)
+        db.session.commit()
+        flash(f"Đã cập nhật danh mục “{category.name}”.")
+        return redirect(url_for("category_detail", category_id=category.id))
+
+    return render_template("categories/form.html", form=form,
+                           title=f"Sửa danh mục: {category.name}",
+                           cancel_url=url_for("category_detail", category_id=category.id))
+
+
+@app.route("/categories/<int:category_id>/delete", methods=["POST"])
+def category_delete(category_id):
+    category = db.get_or_404(Category, category_id,
+                             description=f"Không có danh mục với id = {category_id}.")
+    form = DeleteForm()
+
+    # validate_on_submit ở đây chính là bước kiểm tra CSRF token
+    if not form.validate_on_submit():
+        flash("Yêu cầu không hợp lệ, vui lòng thử lại.")
+        return redirect(url_for("category_list"))
+
+    if category.books:
+        flash(f"Không thể xoá “{category.name}” vì danh mục còn "
+              f"{len(category.books)} sách.")
+        return redirect(url_for("category_detail", category_id=category.id))
+
+    db.session.delete(category)
+    db.session.commit()
+    flash(f"Đã xoá danh mục “{category.name}”.")
+    return redirect(url_for("category_list"))
+
+
+# Route giữ chỗ để menu gọi url_for được; bước 4 sẽ thay thế
 @app.route("/books")
 def book_list():
     abort(404, description="Trang sách sẽ làm ở bước 4.")

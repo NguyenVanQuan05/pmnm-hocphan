@@ -1,0 +1,49 @@
+{# Đã hiểu và chỉnh sửa – Nguyễn Văn Quân #}
+{% extends "base.html" %}
+
+{% block title %}Danh mục sách{% endblock %}
+
+{% block content %}
+    <p class="toolbar">
+        <a class="button" href="{{ url_for('category_create') }}">+ Thêm danh mục</a>
+    </p>
+
+    <div class="table-wrap">
+        <table>
+            <tr>
+                <th class="stt">STT</th>
+                <th>Tên danh mục</th>
+                <th class="center">Số sách</th>
+                <th class="center">Thao tác</th>
+            </tr>
+            {% for category in categories %}
+                <tr>
+                    <td class="stt">{{ loop.index }}</td>
+                    <td>
+                        <a href="{{ url_for('category_detail', category_id=category.id) }}">{{ category.name }}</a>
+                    </td>
+                    <td class="center">{{ category.books|length }}</td>
+                    <td>
+                        <div class="row-actions">
+                            <a class="button button-small button-light"
+                               href="{{ url_for('category_detail', category_id=category.id) }}">Xem</a>
+                            <a class="button button-small"
+                               href="{{ url_for('category_edit', category_id=category.id) }}">Sửa</a>
+                            {# Xoá phải dùng POST + CSRF; confirm() hỏi lại trước khi gửi #}
+                            <form method="post"
+                                  action="{{ url_for('category_delete', category_id=category.id) }}"
+                                  onsubmit="return confirm('Bạn chắc chắn muốn xoá danh mục này?');">
+                                {{ delete_form.hidden_tag() }}
+                                <button type="submit" class="button-small button-danger">Xoá</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4" class="center">Chưa có danh mục nào.</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}

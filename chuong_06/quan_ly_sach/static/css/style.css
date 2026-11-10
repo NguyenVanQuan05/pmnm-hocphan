@@ -105,6 +105,36 @@ button, .button, .actions input[type="submit"] {
     cursor: pointer;
 }
 button:hover, .button:hover, .actions input[type="submit"]:hover { background: #0b5ed7; }
+/* Biến thể nút: viết SAU để đè màu mặc định ở trên */
+.button-light { background: #6c757d; }
+.button-light:hover { background: #5c636a; }
+.button-danger { background: #dc3545; }
+.button-danger:hover { background: #bb2d3b; }
+.button-small { padding: 3px 10px; font-size: 14px; }
+textarea { min-height: 100px; resize: vertical; }
+
+/* ===== Khối nội dung, thanh nút ===== */
+h2 { margin: 24px 0 12px; font-size: 22px; font-weight: 500; }
+.card {
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background: white;
+}
+.info-label { margin: 0 0 4px; color: #6c757d; font-size: 14px; }
+/* Hàng nút nằm ngang, form xoá đứng cạnh các link */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px;
+}
+.card .toolbar { margin: 16px 0 0; }
+.row-actions { display: flex; justify-content: center; gap: 6px; }
+/* Bảng rộng hơn màn hình điện thoại thì cuộn ngang trong khung này */
+.table-wrap { overflow-x: auto; }
 
 /* ===== Footer ===== */
 .site-footer {
