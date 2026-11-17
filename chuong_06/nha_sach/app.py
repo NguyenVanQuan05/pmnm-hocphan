@@ -38,6 +38,14 @@ migrate = Migrate(app, db)
 SHIPPING_FEE = 20000
 FREE_SHIPPING_FROM = 200000
 LOW_STOCK_LIMIT = 5
+ADMIN_BOOKS_PER_PAGE = 5
+COVER_FOLDER = os.path.join(app.static_folder, "uploads", "covers")
+
+STOCK_FILTERS = {
+    "con_hang": "Còn hàng",
+    "sap_het": f"Sắp hết (≤ {LOW_STOCK_LIMIT})",
+    "het_hang": "Hết hàng",
+}
 
 SAMPLE_DATA = {
     "Lập trình": {
@@ -156,12 +164,20 @@ def parse_quantity(value):
         return None
 
 
-def safe_next_url(target):
+def safe_next_url(target, fallback="book_list"):
     if (target and target.startswith("/")
             and not target.startswith("//")
             and not target.startswith("/\\")):
         return target
-    return url_for("book_list")
+    return url_for(fallback)
+
+
+def delete_cover_file(filename):
+    if not filename:
+        return
+    path = os.path.join(COVER_FOLDER, filename)
+    if os.path.exists(path):
+        os.remove(path)
 
 
 @app.context_processor
@@ -464,6 +480,89 @@ def admin_dashboard():
                            low_stock_limit=LOW_STOCK_LIMIT,
                            recent_orders=recent_orders,
                            low_stock_books=low_stock_books)
+
+
+@app.route("/admin/books")
+def admin_books():
+    keyword = request.args.get("q", "").strip()
+    selected_category_id = request.args.get("category_id", type=int)
+    stock = request.args.get("stock", "")
+    if stock not in STOCK_FILTERS:
+        stock = ""
+
+    stmt = db.select(Book).order_by(Book.created_at.desc(), Book.id.desc())
+    if keyword:
+        pattern = f"%{keyword}%"
+        stmt = stmt.where(or_(Book.title.ilike(pattern),
+                              Book.author.ilike(pattern)))
+    if selected_category_id:
+        stmt = stmt.filter_by(category_id=selected_category_id)
+    if stock == "con_hang":
+        stmt = stmt.where(Book.stock > 0)
+    elif stock == "sap_het":
+        stmt = stmt.where(Book.stock <= LOW_STOCK_LIMIT)
+    elif stock == "het_hang":
+        stmt = stmt.where(Book.stock == 0)
+
+    filter_args = {}
+    if keyword:
+        filter_args["q"] = keyword
+    if selected_category_id:
+        filter_args["category_id"] = selected_category_id
+    if stock:
+        filter_args["stock"] = stock
+
+    page = request.args.get("page", 1, type=int)
+    books_page = db.paginate(stmt, page=page, per_page=ADMIN_BOOKS_PER_PAGE,
+                             error_out=False)
+    if books_page.pages and books_page.page > books_page.pages:
+        return redirect(url_for("admin_books", page=books_page.pages,
+                                **filter_args))
+
+    book_ids = [book.id for book in books_page.items]
+    ordered_ids = set(db.session.execute(
+        db.select(OrderItem.book_id)
+        .where(OrderItem.book_id.in_(book_ids))
+        .distinct()).scalars().all())
+
+    categories = db.session.execute(
+        db.select(Category).order_by(Category.name)).scalars().all()
+    action_form = ActionForm()
+    return render_template("admin/books.html", books_page=books_page,
+                           ordered_ids=ordered_ids,
+                           filter_args=filter_args,
+                           keyword=keyword,
+                           selected_category_id=selected_category_id,
+                           stock=stock,
+                           stock_filters=STOCK_FILTERS,
+                           categories=categories,
+                           action_form=action_form)
+
+
+@app.route("/admin/books/<int:book_id>/delete", methods=["POST"])
+def admin_book_delete(book_id):
+    book = db.get_or_404(Book, book_id,
+                         description=f"Không có sách với id = {book_id}.")
+    form = ActionForm()
+    next_url = safe_next_url(request.form.get("next"), "admin_books")
+
+    if not form.validate_on_submit():
+        flash("Yêu cầu không hợp lệ, vui lòng thử lại.", "danger")
+        return redirect(next_url)
+
+    order_count = db.session.scalar(
+        db.select(func.count(OrderItem.id)).filter_by(book_id=book.id))
+    if order_count > 0:
+        flash(f"Không thể xoá “{book.title}” vì sách đã có trong "
+              f"{order_count} đơn hàng.", "danger")
+        return redirect(next_url)
+
+    cover = book.cover
+    db.session.delete(book)
+    db.session.commit()
+    delete_cover_file(cover)
+    flash(f"Đã xoá sách “{book.title}”.", "success")
+    return redirect(next_url)
 
 
 @app.errorhandler(404)

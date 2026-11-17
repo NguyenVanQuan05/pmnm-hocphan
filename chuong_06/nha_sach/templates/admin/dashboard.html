@@ -85,7 +85,7 @@
                     {% else %}
                         <p class="text-muted mb-0">Không có sách nào sắp hết.</p>
                     {% endfor %}
-                    <a class="d-inline-block mt-2" href="#">Nhập thêm sách →</a>
+                    <a class="d-inline-block mt-2" href="{{ url_for('admin_books', stock='sap_het') }}">Nhập thêm sách →</a>
                 </div>
             </div>
         </div>
