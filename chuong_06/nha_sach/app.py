@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import click
 from flask import (
@@ -18,6 +19,7 @@ from forms import ActionForm, CheckoutForm
 from models import (
     ORDER_STATUSES,
     PAYMENT_METHODS,
+    STATUS_COLORS,
     Book,
     Category,
     Order,
@@ -35,6 +37,7 @@ migrate = Migrate(app, db)
 
 SHIPPING_FEE = 20000
 FREE_SHIPPING_FROM = 200000
+LOW_STOCK_LIMIT = 5
 
 SAMPLE_DATA = {
     "Lập trình": {
@@ -100,6 +103,13 @@ def calculate_shipping_fee(subtotal):
     return SHIPPING_FEE
 
 
+def month_range(day):
+    start = datetime(day.year, day.month, 1)
+    if day.month == 12:
+        return start, datetime(day.year + 1, 1, 1)
+    return start, datetime(day.year, day.month + 1, 1)
+
+
 def get_cart():
     return session.get("cart", {})
 
@@ -161,7 +171,15 @@ def inject_helpers():
             return "active"
         return ""
     cart_count = sum(get_cart().values())
-    return {"is_active": is_active, "cart_count": cart_count}
+
+    pending_count = 0
+    if request.path.startswith("/admin"):
+        pending_count = db.session.scalar(
+            db.select(func.count(Order.id)).filter_by(status=ORDER_STATUSES[0]))
+
+    return {"is_active": is_active, "cart_count": cart_count,
+            "pending_count": pending_count,
+            "status_colors": STATUS_COLORS}
 
 
 @app.template_filter("vnd")
@@ -409,6 +427,43 @@ def order_done(order_id):
                           description=f"Không có đơn hàng với mã #{order_id}.")
     return render_template("shop/order_done.html", order=order,
                            payment_methods=PAYMENT_METHODS)
+
+
+@app.route("/admin")
+def admin_dashboard():
+    total_books = db.session.scalar(db.select(func.count(Book.id)))
+    pending_orders = db.session.scalar(
+        db.select(func.count(Order.id)).filter_by(status=ORDER_STATUSES[0]))
+
+    now = datetime.now()
+    month_start, next_month_start = month_range(now)
+    month_revenue = db.session.scalar(
+        db.select(func.coalesce(func.sum(Order.total), 0))
+        .join(OrderHistory, OrderHistory.order_id == Order.id)
+        .where(OrderHistory.status == ORDER_STATUSES[2],
+               OrderHistory.created_at >= month_start,
+               OrderHistory.created_at < next_month_start))
+    low_stock_count = db.session.scalar(
+        db.select(func.count(Book.id)).where(Book.stock <= LOW_STOCK_LIMIT))
+
+    recent_orders = db.session.execute(
+        db.select(Order)
+        .order_by(Order.created_at.desc(), Order.id.desc())
+        .limit(5)).scalars().all()
+    low_stock_books = db.session.execute(
+        db.select(Book)
+        .where(Book.stock <= LOW_STOCK_LIMIT)
+        .order_by(Book.stock, Book.title)).scalars().all()
+
+    return render_template("admin/dashboard.html",
+                           total_books=total_books,
+                           pending_orders=pending_orders,
+                           month=now.month,
+                           month_revenue=month_revenue,
+                           low_stock_count=low_stock_count,
+                           low_stock_limit=LOW_STOCK_LIMIT,
+                           recent_orders=recent_orders,
+                           low_stock_books=low_stock_books)
 
 
 @app.errorhandler(404)

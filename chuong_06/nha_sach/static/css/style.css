@@ -6,6 +6,20 @@
     background-color: #f97316;
 }
 
+.admin-sidebar {
+    background-color: #1e293b;
+    min-height: 70vh;
+}
+
+.admin-sidebar .nav-link {
+    color: #cbd5e1;
+}
+
+.admin-sidebar .nav-link.active {
+    background-color: #334155;
+    color: #fff;
+}
+
 .price {
     color: #ea580c;
     font-weight: 600;

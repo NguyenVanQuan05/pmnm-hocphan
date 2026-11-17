@@ -9,6 +9,11 @@
 {% endmacro %}
 
 
+{% macro status_badge(status) %}
+    <span class="badge rounded-pill text-bg-{{ status_colors.get(status, 'secondary') }}">{{ status }}</span>
+{% endmacro %}
+
+
 {% macro render_field(field) %}
     <div class="mb-3">
         {% if field.type == "RadioField" %}

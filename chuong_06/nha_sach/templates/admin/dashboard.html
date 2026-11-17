@@ -1,0 +1,93 @@
+{% extends "admin/base_admin.html" %}
+{% from "_macros.html" import status_badge with context %}
+
+{% block title %}Tổng quan{% endblock %}
+
+{% block admin_content %}
+    <h1 class="h3 mb-3">Tổng quan</h1>
+
+    <div class="row row-cols-2 row-cols-lg-4 g-3 mb-4">
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="small text-muted">Đầu sách</div>
+                    <div class="fs-3 fw-bold">{{ total_books }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="small text-muted">Đơn chờ xác nhận</div>
+                    <div class="fs-3 fw-bold price">{{ pending_orders }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="small text-muted">Doanh thu tháng {{ month }}</div>
+                    <div class="fs-4 fw-bold text-success">{{ month_revenue|vnd }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="small text-muted">Sắp hết hàng</div>
+                    <div class="fs-3 fw-bold text-danger">{{ low_stock_count }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <h2 class="h6 fw-bold">Đơn hàng mới nhất</h2>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã</th>
+                            <th>Khách hàng</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                            <tr>
+                                <td>#{{ order.id }}</td>
+                                <td>{{ order.customer_name }}</td>
+                                <td class="text-end">{{ order.total|vnd }}</td>
+                                <td>{{ status_badge(order.status) }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">Chưa có đơn hàng nào.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <a href="#">Xem tất cả đơn hàng →</a>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold">Sắp hết hàng (≤ {{ low_stock_limit }})</h2>
+                    {% for book in low_stock_books %}
+                        <div class="d-flex justify-content-between py-1">
+                            <a class="text-decoration-none" href="#">{{ book.title }}</a>
+                            <span class="fw-bold {{ 'text-danger' if book.stock == 0 else 'price' }}">{{ book.stock }}</span>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">Không có sách nào sắp hết.</p>
+                    {% endfor %}
+                    <a class="d-inline-block mt-2" href="#">Nhập thêm sách →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
