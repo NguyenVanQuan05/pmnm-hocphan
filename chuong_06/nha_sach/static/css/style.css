@@ -1,0 +1,25 @@
+.site-navbar {
+    background-color: #0b3a75;
+}
+
+.badge-cart {
+    background-color: #f97316;
+}
+
+.price {
+    color: #ea580c;
+    font-weight: 600;
+}
+
+.book-cover {
+    height: 220px;
+    object-fit: contain;
+    background-color: #e9ecef;
+}
+
+.book-cover-lg {
+    width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    background-color: #e9ecef;
+}

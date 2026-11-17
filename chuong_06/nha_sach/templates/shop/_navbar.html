@@ -1,0 +1,14 @@
+<nav class="navbar navbar-expand navbar-dark site-navbar">
+    <div class="container">
+        <a class="navbar-brand fw-semibold" href="{{ url_for('book_list') }}">📖 Nhà sách Sông Hương</a>
+
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link {{ is_active('book_list') }} {{ is_active('book_detail') }}"
+               href="{{ url_for('book_list') }}">Sách</a>
+            <a class="nav-link" href="#">
+                🛒 Giỏ hàng
+                <span class="badge rounded-pill badge-cart">{{ cart_count }}</span>
+            </a>
+        </div>
+    </div>
+</nav>

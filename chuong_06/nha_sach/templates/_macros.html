@@ -1,0 +1,9 @@
+{% macro book_cover(book, class_name="") %}
+    {% if book.cover %}
+        <img class="{{ class_name }}" alt="Ảnh bìa {{ book.title }}"
+             src="{{ url_for('static', filename='uploads/covers/' ~ book.cover) }}">
+    {% else %}
+        <img class="{{ class_name }}" alt="Chưa có ảnh bìa"
+             src="{{ url_for('static', filename='img/no-cover.svg') }}">
+    {% endif %}
+{% endmacro %}

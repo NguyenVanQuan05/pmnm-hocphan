@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_macros.html" import book_cover %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+    <div class="row g-4">
+        <div class="col-md-4">
+            {{ book_cover(book, "img-fluid rounded book-cover-lg") }}
+        </div>
+        <div class="col-md-8">
+            <h1 class="h3">{{ book.title }}</h1>
+            <p class="text-muted">Tác giả: {{ book.author }}</p>
+            <p class="price fs-4">{{ book.price|vnd }}</p>
+            <p>Còn {{ book.stock }} cuốn</p>
+            <a class="btn btn-outline-primary" href="{{ url_for('book_list') }}">← Danh sách sách</a>
+        </div>
+    </div>
+{% endblock %}
