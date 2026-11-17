@@ -16,7 +16,7 @@ from flask import (
 from flask_migrate import Migrate
 from sqlalchemy import func, or_
 
-from forms import ActionForm, BookForm, CheckoutForm
+from forms import ActionForm, BookForm, CategoryForm, CheckoutForm
 from models import (
     ORDER_STATUSES,
     PAYMENT_METHODS,
@@ -180,6 +180,14 @@ def load_category_choices(form):
     for category in categories:
         form.category_id.choices.append((category.id, category.name))
     return categories
+
+
+def categories_with_counts():
+    stmt = (db.select(Category, func.count(Book.id))
+            .outerjoin(Book, Book.category_id == Category.id)
+            .group_by(Category.id)
+            .order_by(Category.id))
+    return db.session.execute(stmt).all()
 
 
 def save_cover_file(file):
@@ -564,7 +572,7 @@ def admin_book_create():
 
     if not categories:
         flash("Chưa có danh mục nào, hãy thêm danh mục trước.", "warning")
-        return redirect(url_for("admin_books"))
+        return redirect(url_for("admin_categories"))
 
     if form.validate_on_submit():
         cover = None
@@ -646,6 +654,66 @@ def admin_book_delete(book_id):
     delete_cover_file(cover)
     flash(f"Đã xoá sách “{book.title}”.", "success")
     return redirect(next_url)
+
+
+@app.route("/admin/categories", methods=["GET", "POST"])
+def admin_categories():
+    form = CategoryForm()
+
+    if form.validate_on_submit():
+        category = Category(name=form.name.data.strip(),
+                            description=clean_text(form.description.data))
+        db.session.add(category)
+        db.session.commit()
+        flash(f"Đã thêm danh mục “{category.name}”.", "success")
+        return redirect(url_for("admin_categories"))
+
+    return render_template("admin/categories.html", form=form,
+                           rows=categories_with_counts(),
+                           editing=None,
+                           action_form=ActionForm())
+
+
+@app.route("/admin/categories/<int:category_id>/edit", methods=["GET", "POST"])
+def admin_category_edit(category_id):
+    category = db.get_or_404(Category, category_id,
+                             description=f"Không có danh mục với id = {category_id}.")
+    form = CategoryForm(obj=category)
+    form.editing_id = category.id
+
+    if form.validate_on_submit():
+        category.name = form.name.data.strip()
+        category.description = clean_text(form.description.data)
+        db.session.commit()
+        flash(f"Đã cập nhật danh mục “{category.name}”.", "success")
+        return redirect(url_for("admin_categories"))
+
+    return render_template("admin/categories.html", form=form,
+                           rows=categories_with_counts(),
+                           editing=category,
+                           action_form=ActionForm())
+
+
+@app.route("/admin/categories/<int:category_id>/delete", methods=["POST"])
+def admin_category_delete(category_id):
+    category = db.get_or_404(Category, category_id,
+                             description=f"Không có danh mục với id = {category_id}.")
+    form = ActionForm()
+
+    if not form.validate_on_submit():
+        flash("Yêu cầu không hợp lệ, vui lòng thử lại.", "danger")
+        return redirect(url_for("admin_categories"))
+
+    book_count = db.session.scalar(
+        db.select(func.count(Book.id)).filter_by(category_id=category.id))
+    if book_count > 0:
+        flash(f"Không thể xoá “{category.name}”: còn {book_count} sách.", "danger")
+        return redirect(url_for("admin_categories"))
+
+    db.session.delete(category)
+    db.session.commit()
+    flash(f"Đã xoá danh mục “{category.name}”.", "success")
+    return redirect(url_for("admin_categories"))
 
 
 @app.errorhandler(404)

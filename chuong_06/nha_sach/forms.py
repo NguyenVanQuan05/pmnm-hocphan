@@ -22,7 +22,7 @@ from wtforms.validators import (
     Regexp,
 )
 
-from models import PAYMENT_METHODS, Book, db
+from models import PAYMENT_METHODS, Book, Category, db
 
 CURRENT_YEAR = date.today().year
 MAX_COVER_SIZE = 2 * 1024 * 1024
@@ -58,6 +58,24 @@ class CheckoutForm(FlaskForm):
                          default="cod",
                          invalid_choice_message="Hình thức thanh toán không hợp lệ.")
     submit = SubmitField("Xác nhận đặt hàng")
+
+
+class CategoryForm(FlaskForm):
+    name = StringField("Tên danh mục *", validators=[
+        DataRequired(message="Vui lòng nhập tên danh mục."),
+        Length(max=100, message="Tên danh mục tối đa 100 ký tự."),
+    ])
+    description = TextAreaField("Mô tả")
+    submit = SubmitField("+ Thêm")
+
+    editing_id = None
+
+    def validate_name(self, field):
+        name = field.data.strip().lower()
+        categories = db.session.execute(db.select(Category)).scalars().all()
+        for category in categories:
+            if category.name.lower() == name and category.id != self.editing_id:
+                raise ValidationError("Danh mục đã tồn tại.")
 
 
 class BookForm(FlaskForm):

@@ -15,7 +15,8 @@
                     <a class="nav-link {{ is_active('admin_books') }} {{ is_active('admin_book_create') }}
                               {{ is_active('admin_book_edit') }}"
                        href="{{ url_for('admin_books') }}">📚 Sách</a>
-                    <a class="nav-link" href="#">🏷 Danh mục</a>
+                    <a class="nav-link {{ is_active('admin_categories') }} {{ is_active('admin_category_edit') }}"
+                       href="{{ url_for('admin_categories') }}">🏷 Danh mục</a>
                     <a class="nav-link d-flex justify-content-between align-items-center" href="#">
                         🧾 Đơn hàng
                         {% if pending_count %}
