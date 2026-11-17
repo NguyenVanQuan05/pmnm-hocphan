@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+
+    <title>{% block title %}Trang chủ{% endblock %} - MiniBlog</title>
+
+    {% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% endblock %}
+</head>
+<body>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>&copy; {{ current_year }} {{ site_name }}</footer>
+
+</body>
+</html>

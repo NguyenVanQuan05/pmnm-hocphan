@@ -1,0 +1,142 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 36px 24px 20px;
+    background: #f3f5f8;
+    color: #263244;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+}
+
+.lesson-heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.lesson-heading img {
+    flex-shrink: 0;
+}
+
+h1 {
+    margin: 0;
+    color: red;
+    font-size: 32px;
+    line-height: 1.25;
+}
+
+.lesson-section {
+    margin-bottom: 20px;
+    padding: 24px;
+    background: white;
+    border: 1px solid #e0e6ee;
+    border-radius: 12px;
+}
+
+h2 {
+    margin: 0 0 18px;
+    color: #153e70;
+    font-size: 21px;
+    line-height: 1.4;
+}
+
+h3 {
+    margin: 0 0 10px;
+    font-size: 17px;
+}
+
+p {
+    margin: 0 0 12px;
+}
+
+p:last-child {
+    margin-bottom: 0;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.topic-card,
+.context-case {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid #dce4ee;
+    border-radius: 8px;
+    background: #f8fafc;
+    overflow-wrap: anywhere;
+}
+
+.card-grid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
+
+.badge {
+    display: inline-block;
+    margin: 0 4px 4px 0;
+    padding: 3px 10px;
+    border-radius: 5px;
+    background: #e8effa;
+    color: #214e84;
+    font-size: 13px;
+}
+
+a {
+    color: #1958a6;
+    text-underline-offset: 3px;
+}
+
+a:hover {
+    color: #103968;
+}
+
+a:focus-visible {
+    outline: 2px solid #1958a6;
+    outline-offset: 4px;
+}
+
+.resource-links {
+    margin: 0;
+    padding-left: 22px;
+}
+
+.resource-links li + li {
+    margin-top: 10px;
+}
+
+footer {
+    padding: 4px 0 12px;
+    color: #637083;
+    text-align: center;
+    font-size: 14px;
+}
+
+@media (max-width: 640px) {
+    body {
+        padding: 20px 12px 12px;
+    }
+
+    .lesson-section {
+        padding: 18px;
+    }
+
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    h2 {
+        font-size: 19px;
+    }
+}

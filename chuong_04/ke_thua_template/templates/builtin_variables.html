@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Biến và hàm có sẵn trong template{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/builtin_variables.css') }}">
+{% endblock %}
+
+{% block content %}
+    <p class="chapter">CHƯƠNG 4 · TEMPLATE VỚI JINJA2</p>
+    <h1>Biến và hàm có sẵn trong template</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tên</th>
+                <th>Ý nghĩa</th>
+                <th>Ví dụ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>request</code></td>
+                <td>Request hiện tại</td>
+                <td><code>{{ request.path }}</code>, <code>{{ request.args.get("q", "") }}</code></td>
+            </tr>
+            <tr>
+                <td><code>session</code></td>
+                <td>Session của người dùng (Chương 5, 8)</td>
+                <td><code>{{ session.get("username") }}</code></td>
+            </tr>
+            <tr>
+                <td><code>g</code></td>
+                <td>Dữ liệu trong một request (Chương 7)</td>
+                <td><code>{{ g.user }}</code></td>
+            </tr>
+            <tr>
+                <td><code>config</code></td>
+                <td>Cấu hình ứng dụng</td>
+                <td><code>{{ config.DEBUG }}</code></td>
+            </tr>
+            <tr>
+                <td><code>url_for()</code></td>
+                <td>Sinh URL</td>
+                <td><code>{{ url_for("index") }}</code></td>
+            </tr>
+            <tr>
+                <td><code>get_flashed_messages()</code></td>
+                <td>Thông báo flash (Chương 5)</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>Đánh dấu mục menu của trang hiện tại:</p>
+    <a class="nav-link {{ is_active('about') }}"
+       href="{{ url_for('about') }}">Giới thiệu</a>
+{% endblock %}

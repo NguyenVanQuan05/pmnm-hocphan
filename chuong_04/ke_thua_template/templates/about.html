@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% from "_macros.html" import topic_card, course_info %}
+{% from "_macros.html" import course_info as course_info_with_context with context %}
+
+{% block title %}Giới thiệu{% endblock %}
+
+{% block head %}
+    {{ super() }}
+{% endblock %}
+
+{% block content %}
+    <div class="lesson-heading">
+        <img src="{{ url_for('static', filename='img/logo.svg') }}"
+             alt="Biểu trưng bài học Jinja2" width="48" height="48">
+        <h1>Giới thiệu</h1>
+    </div>
+
+    <section class="lesson-section">
+        <h2>1. include: chèn một template</h2>
+        {% include "_lesson_intro.html" %}
+    </section>
+
+    <section class="lesson-section">
+        <h2>2. Macro: dùng lại một mẫu HTML</h2>
+        <div class="card-grid">
+            {% for topic in topics %}
+                {{ topic_card(topic) }}
+            {% endfor %}
+            {{ topic_card(topics[0], show_tags=False) }}
+        </div>
+    </section>
+
+    <section class="lesson-section">
+        <h2>3. Macro và context</h2>
+        <div class="card-grid">
+            <section class="context-case">
+                <h3>Import thường</h3>
+                {{ course_info() }}
+            </section>
+            <section class="context-case">
+                <h3>Import có with context</h3>
+                {{ course_info_with_context() }}
+            </section>
+        </div>
+    </section>
+
+    <section class="lesson-section">
+        <h2>4. File tĩnh: CSS và ảnh</h2>
+        <ul class="resource-links">
+            <li><a href="{{ url_for('static', filename='css/style.css') }}">Mở tệp CSS</a></li>
+            <li><a href="{{ url_for('static', filename='img/logo.svg') }}">Mở ảnh SVG</a></li>
+            <li><a href="{{ url_for('static', filename='css/khong_ton_tai.css') }}">Thử tệp không tồn tại (kết quả dự kiến: 404)</a></li>
+        </ul>
+    </section>
+{% endblock %}

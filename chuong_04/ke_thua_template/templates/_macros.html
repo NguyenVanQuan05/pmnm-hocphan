@@ -1,0 +1,23 @@
+{# Macro nhận một danh sách nhãn và tạo HTML cho từng nhãn. #}
+{% macro tag_badges(tags) -%}
+    {% for tag in tags %}
+        <span class="badge">{{ tag }}</span>
+    {% endfor %}
+{%- endmacro %}
+
+{# topic là tham số; show_tags mặc định là True nếu không truyền vào. #}
+{% macro topic_card(topic, show_tags=True) -%}
+    <article class="topic-card">
+        <h3>{{ topic.title }}</h3>
+        <p>{{ topic.description }}</p>
+        {% if show_tags %}
+            <div>{{ tag_badges(topic.tags) }}</div>
+        {% endif %}
+    </article>
+{%- endmacro %}
+
+{# default giúp ví dụ import thường hiển thị thông báo thay vì để trống. #}
+{% macro course_info() -%}
+    <p>Học phần: {{ course_name|default("Không nhận được biến course_name") }}</p>
+    <p><a href="{{ url_for('index') }}">Mở lại trang giới thiệu</a></p>
+{%- endmacro %}
