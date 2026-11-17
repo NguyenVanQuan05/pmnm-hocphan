@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tính chỉ số BMI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main>
+        <h1>Tính chỉ số BMI</h1>
+        {% include "_navbar.html" %}
+        <form method="post" action="{{ url_for('bmi_calculator') }}">
+            <table>
+                <tr>
+                    <th>Chiều cao (cm)</th>
+                    <th>Cân nặng (kg)</th>
+                    <th>Kết quả</th>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" name="height" value="{{ height }}">
+                        {% if errors.height %}<p class="error">{{ errors.height }}</p>{% endif %}
+                    </td>
+                    <td>
+                        <input type="text" name="weight" value="{{ weight }}">
+                        {% if errors.weight %}<p class="error">{{ errors.weight }}</p>{% endif %}
+                    </td>
+                    <td>
+                        {% if result %}
+                            <p class="result result-{{ result.mau }}">{{ result.bmi }} · {{ result.phan_loai }}</p>
+                            <p>Nên có {{ result.can_nang_nen_co }}</p>
+                        {% else %}
+                            <span class="empty-result">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+            <div class="actions">
+                <button type="submit">Tính BMI</button>
+            </div>
+        </form>
+    </main>
+</body>
+</html>

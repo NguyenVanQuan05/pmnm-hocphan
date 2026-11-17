@@ -1,0 +1,9 @@
+<nav class="lesson-menu">
+    <a class="nav-link {{ is_active('index') }}" href="{{ url_for('index') }}">Trang chủ</a>
+    <a class="nav-link {{ is_active('calculator') }}" href="{{ url_for('calculator') }}">Bài 1</a>
+    <a class="nav-link {{ is_active('grade_calculator') }}" href="{{ url_for('grade_calculator') }}">Bài 2</a>
+    <a class="nav-link {{ is_active('bmi_calculator') }}" href="{{ url_for('bmi_calculator') }}">Bài 3</a>
+    <a class="nav-link {{ is_active('login') }} {{ is_active('profile') }}" href="{{ url_for('login') }}">Bài 4</a>
+    <a class="nav-link {{ is_active('register') }}" href="{{ url_for('register') }}">Bài 5</a>
+    {% include "_user_menu.html" %}
+</nav>

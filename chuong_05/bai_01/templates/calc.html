@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Máy tính cơ bản</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main>
+        <h1>Máy tính cơ bản</h1>
+        {% include "_navbar.html" %}
+        <form method="post" action="{{ url_for('calculator') }}">
+            <table>
+                <tr>
+                    <th>Số thứ nhất</th>
+                    <th>Phép toán</th>
+                    <th>Số thứ hai</th>
+                    <th>Kết quả</th>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" name="a" value="{{ a }}">
+                        {% if errors.a %}<p class="error">{{ errors.a }}</p>{% endif %}
+                    </td>
+                    <td>
+                        <select name="op">
+                            {% for phep_toan in ["+", "-", "*", "/"] %}
+                                <option value="{{ phep_toan }}" {% if op == phep_toan %}selected{% endif %}>{{ phep_toan }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if errors.op %}<p class="error">{{ errors.op }}</p>{% endif %}
+                    </td>
+                    <td>
+                        <input type="text" name="b" value="{{ b }}">
+                        {% if errors.b %}<p class="error">{{ errors.b }}</p>{% endif %}
+                    </td>
+                    <td>
+                        {% if result %}
+                            <p class="result">{{ result }}</p>
+                        {% else %}
+                            <span class="empty-result">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+            <div class="actions">
+                <button type="submit">Tính</button>
+            </div>
+        </form>
+    </main>
+</body>
+</html>

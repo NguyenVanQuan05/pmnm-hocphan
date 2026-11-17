@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chương 5 - Bài thực hành</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main>
+        <h1>Chương 5 - Bài thực hành</h1>
+        {% include "_navbar.html" %}
+        {% for message in get_flashed_messages() %}
+            <p class="flash">{{ message }}</p>
+        {% endfor %}
+        <div class="lesson-list">
+            <p>Chọn bài thực hành:</p>
+            <a class="lesson-choice" href="{{ url_for('calculator') }}">Bài 1 – Máy tính cơ bản <span>→</span></a>
+            <a class="lesson-choice" href="{{ url_for('grade_calculator') }}">Bài 2 – Tính điểm học phần <span>→</span></a>
+            <a class="lesson-choice" href="{{ url_for('bmi_calculator') }}">Bài 3 – Tính chỉ số BMI <span>→</span></a>
+            <a class="lesson-choice" href="{{ url_for('login') }}">Bài 4 – Đăng nhập, đăng xuất <span>→</span></a>
+            <a class="lesson-choice" href="{{ url_for('register') }}">Bài 5 – Đăng ký tài khoản <span>→</span></a>
+        </div>
+    </main>
+</body>
+</html>
