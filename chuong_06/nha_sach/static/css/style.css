@@ -25,6 +25,18 @@
     width: 9rem;
 }
 
+.cart-thumb {
+    width: 48px;
+    height: 64px;
+    object-fit: contain;
+    background-color: #e9ecef;
+}
+
+.cart-qty {
+    min-width: 2rem;
+    text-align: center;
+}
+
 .book-cover-lg {
     width: 100%;
     max-height: 420px;

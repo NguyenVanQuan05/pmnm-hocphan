@@ -84,6 +84,37 @@ def save_cart(cart):
     session["cart"] = cart
 
 
+def cart_items():
+    cart = get_cart()
+    if not cart:
+        return [], 0
+
+    book_ids = [int(book_id) for book_id in cart]
+    books = db.session.execute(
+        db.select(Book).where(Book.id.in_(book_ids))).scalars().all()
+    books_by_id = {str(book.id): book for book in books}
+
+    items = []
+    total = 0
+    removed_count = 0
+    for book_id, quantity in list(cart.items()):
+        book = books_by_id.get(book_id)
+        if book is None:
+            del cart[book_id]
+            removed_count += 1
+            continue
+        line_total = book.price * quantity
+        items.append({"book": book, "quantity": quantity,
+                      "line_total": line_total})
+        total += line_total
+
+    if removed_count > 0:
+        save_cart(cart)
+        flash(f"Đã bỏ {removed_count} sách khỏi giỏ vì sách không còn bán.",
+              "warning")
+    return items, total
+
+
 def parse_quantity(value):
     try:
         return int(value)
@@ -189,6 +220,102 @@ def cart_add(book_id):
     save_cart(cart)
     flash(f"Đã thêm {quantity} × “{book.title}” vào giỏ hàng.", "success")
     return redirect(next_url)
+
+
+@app.route("/cart")
+def cart_view():
+    items, total = cart_items()
+    action_form = ActionForm()
+    return render_template("shop/cart.html", items=items, total=total,
+                           action_form=action_form)
+
+
+@app.route("/cart/increase/<int:book_id>", methods=["POST"])
+def cart_increase(book_id):
+    book = db.get_or_404(Book, book_id,
+                         description=f"Không có sách với id = {book_id}.")
+    form = ActionForm()
+
+    if not form.validate_on_submit():
+        flash("Yêu cầu không hợp lệ, vui lòng thử lại.", "danger")
+        return redirect(url_for("cart_view"))
+
+    cart = get_cart()
+    key = str(book.id)
+    if key not in cart:
+        flash(f"“{book.title}” không có trong giỏ hàng.", "warning")
+        return redirect(url_for("cart_view"))
+
+    if cart[key] >= book.stock:
+        flash(f"Không thể tăng “{book.title}”: tồn kho chỉ còn "
+              f"{book.stock} cuốn.", "warning")
+        return redirect(url_for("cart_view"))
+
+    cart[key] += 1
+    save_cart(cart)
+    flash(f"Đã tăng “{book.title}” lên {cart[key]} cuốn.", "success")
+    return redirect(url_for("cart_view"))
+
+
+@app.route("/cart/decrease/<int:book_id>", methods=["POST"])
+def cart_decrease(book_id):
+    book = db.get_or_404(Book, book_id,
+                         description=f"Không có sách với id = {book_id}.")
+    form = ActionForm()
+
+    if not form.validate_on_submit():
+        flash("Yêu cầu không hợp lệ, vui lòng thử lại.", "danger")
+        return redirect(url_for("cart_view"))
+
+    cart = get_cart()
+    key = str(book.id)
+    if key not in cart:
+        flash(f"“{book.title}” không có trong giỏ hàng.", "warning")
+        return redirect(url_for("cart_view"))
+
+    cart[key] -= 1
+    if cart[key] == 0:
+        del cart[key]
+        flash(f"Đã bỏ “{book.title}” khỏi giỏ hàng.", "success")
+    else:
+        flash(f"Đã giảm “{book.title}” còn {cart[key]} cuốn.", "success")
+    save_cart(cart)
+    return redirect(url_for("cart_view"))
+
+
+@app.route("/cart/remove/<int:book_id>", methods=["POST"])
+def cart_remove(book_id):
+    book = db.get_or_404(Book, book_id,
+                         description=f"Không có sách với id = {book_id}.")
+    form = ActionForm()
+
+    if not form.validate_on_submit():
+        flash("Yêu cầu không hợp lệ, vui lòng thử lại.", "danger")
+        return redirect(url_for("cart_view"))
+
+    cart = get_cart()
+    key = str(book.id)
+    if key not in cart:
+        flash(f"“{book.title}” không có trong giỏ hàng.", "warning")
+        return redirect(url_for("cart_view"))
+
+    del cart[key]
+    save_cart(cart)
+    flash(f"Đã bỏ “{book.title}” khỏi giỏ hàng.", "success")
+    return redirect(url_for("cart_view"))
+
+
+@app.route("/cart/clear", methods=["POST"])
+def cart_clear():
+    form = ActionForm()
+
+    if not form.validate_on_submit():
+        flash("Yêu cầu không hợp lệ, vui lòng thử lại.", "danger")
+        return redirect(url_for("cart_view"))
+
+    save_cart({})
+    flash("Đã xoá toàn bộ giỏ hàng.", "success")
+    return redirect(url_for("cart_view"))
 
 
 @app.errorhandler(404)
