@@ -12,7 +12,8 @@
                 <nav class="nav nav-pills flex-column gap-1">
                     <a class="nav-link {{ is_active('admin_dashboard') }}"
                        href="{{ url_for('admin_dashboard') }}">▣ Tổng quan</a>
-                    <a class="nav-link {{ is_active('admin_books') }}"
+                    <a class="nav-link {{ is_active('admin_books') }} {{ is_active('admin_book_create') }}
+                              {{ is_active('admin_book_edit') }}"
                        href="{{ url_for('admin_books') }}">📚 Sách</a>
                     <a class="nav-link" href="#">🏷 Danh mục</a>
                     <a class="nav-link d-flex justify-content-between align-items-center" href="#">

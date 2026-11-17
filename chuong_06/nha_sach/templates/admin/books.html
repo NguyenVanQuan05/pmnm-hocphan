@@ -6,7 +6,7 @@
 {% block admin_content %}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3 mb-0">Sách ({{ books_page.total }})</h1>
-        <a class="btn btn-primary" href="#">+ Thêm sách</a>
+        <a class="btn btn-primary" href="{{ url_for('admin_book_create') }}">+ Thêm sách</a>
     </div>
 
     <form class="row g-2 mb-3" method="get" action="{{ url_for('admin_books') }}">
@@ -62,7 +62,8 @@
                         <td class="text-center {{ 'text-danger fw-bold' if book.stock == 0 else '' }}">{{ book.stock }}</td>
                         <td>
                             <div class="d-flex justify-content-center gap-2">
-                                <a class="btn btn-sm btn-link text-decoration-none" href="#">Sửa</a>
+                                <a class="btn btn-sm btn-link text-decoration-none"
+                                   href="{{ url_for('admin_book_edit', book_id=book.id) }}">Sửa</a>
                                 <form method="post"
                                       action="{{ url_for('admin_book_delete', book_id=book.id) }}"
                                       onsubmit="return confirm('Bạn chắc chắn muốn xoá sách này?');">

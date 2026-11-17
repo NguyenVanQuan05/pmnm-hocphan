@@ -1,4 +1,5 @@
 import os
+import secrets
 from datetime import datetime
 
 import click
@@ -15,7 +16,7 @@ from flask import (
 from flask_migrate import Migrate
 from sqlalchemy import func, or_
 
-from forms import ActionForm, CheckoutForm
+from forms import ActionForm, BookForm, CheckoutForm
 from models import (
     ORDER_STATUSES,
     PAYMENT_METHODS,
@@ -31,7 +32,7 @@ from models import (
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-chi-dung-khi-phat-trien")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///nha_sach.db"
-app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = 3 * 1024 * 1024
 db.init_app(app)
 migrate = Migrate(app, db)
 
@@ -170,6 +171,23 @@ def safe_next_url(target, fallback="book_list"):
             and not target.startswith("/\\")):
         return target
     return url_for(fallback)
+
+
+def load_category_choices(form):
+    categories = db.session.execute(
+        db.select(Category).order_by(Category.name)).scalars().all()
+    form.category_id.choices = [(0, "-- Chọn danh mục --")]
+    for category in categories:
+        form.category_id.choices.append((category.id, category.name))
+    return categories
+
+
+def save_cover_file(file):
+    extension = os.path.splitext(file.filename)[1].lower()
+    filename = secrets.token_hex(8) + extension
+    os.makedirs(COVER_FOLDER, exist_ok=True)
+    file.save(os.path.join(COVER_FOLDER, filename))
+    return filename
 
 
 def delete_cover_file(filename):
@@ -539,6 +557,71 @@ def admin_books():
                            action_form=action_form)
 
 
+@app.route("/admin/books/new", methods=["GET", "POST"])
+def admin_book_create():
+    form = BookForm()
+    categories = load_category_choices(form)
+
+    if not categories:
+        flash("Chưa có danh mục nào, hãy thêm danh mục trước.", "warning")
+        return redirect(url_for("admin_books"))
+
+    if form.validate_on_submit():
+        cover = None
+        if form.cover_file.data:
+            cover = save_cover_file(form.cover_file.data)
+        book = Book(title=form.title.data.strip(),
+                    author=form.author.data.strip(),
+                    publisher=clean_text(form.publisher.data),
+                    year=form.year.data,
+                    price=form.price.data,
+                    stock=form.stock.data,
+                    description=clean_text(form.description.data),
+                    cover=cover,
+                    category_id=form.category_id.data)
+        db.session.add(book)
+        db.session.commit()
+        flash(f"Đã thêm sách “{book.title}”.", "success")
+        return redirect(url_for("admin_books"))
+
+    return render_template("admin/book_form.html", form=form, book=None,
+                           title="Thêm sách",
+                           breadcrumb="Thêm",
+                           cancel_url=url_for("admin_books"))
+
+
+@app.route("/admin/books/<int:book_id>/edit", methods=["GET", "POST"])
+def admin_book_edit(book_id):
+    book = db.get_or_404(Book, book_id,
+                         description=f"Không có sách với id = {book_id}.")
+    form = BookForm(obj=book)
+    form.editing_id = book.id
+    load_category_choices(form)
+
+    if form.validate_on_submit():
+        old_cover = None
+        if form.cover_file.data:
+            old_cover = book.cover
+            book.cover = save_cover_file(form.cover_file.data)
+        book.title = form.title.data.strip()
+        book.author = form.author.data.strip()
+        book.publisher = clean_text(form.publisher.data)
+        book.year = form.year.data
+        book.price = form.price.data
+        book.stock = form.stock.data
+        book.description = clean_text(form.description.data)
+        book.category_id = form.category_id.data
+        db.session.commit()
+        delete_cover_file(old_cover)
+        flash(f"Đã cập nhật sách “{book.title}”.", "success")
+        return redirect(url_for("admin_books"))
+
+    return render_template("admin/book_form.html", form=form, book=book,
+                           title=f"Sửa sách: {book.title}",
+                           breadcrumb="Sửa",
+                           cancel_url=url_for("admin_books"))
+
+
 @app.route("/admin/books/<int:book_id>/delete", methods=["POST"])
 def admin_book_delete(book_id):
     book = db.get_or_404(Book, book_id,
@@ -568,6 +651,13 @@ def admin_book_delete(book_id):
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template("404.html", error=error), 404
+
+
+@app.errorhandler(413)
+def request_too_large(error):
+    flash("Dữ liệu gửi lên quá lớn (tối đa 3 MB). Ảnh bìa chỉ được tối đa 2 MB.",
+          "danger")
+    return redirect(request.url)
 
 
 @app.cli.command("seed")

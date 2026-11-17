@@ -79,7 +79,7 @@
                     <h2 class="h6 fw-bold">Sắp hết hàng (≤ {{ low_stock_limit }})</h2>
                     {% for book in low_stock_books %}
                         <div class="d-flex justify-content-between py-1">
-                            <a class="text-decoration-none" href="#">{{ book.title }}</a>
+                            <a class="text-decoration-none" href="{{ url_for('admin_book_edit', book_id=book.id) }}">{{ book.title }}</a>
                             <span class="fw-bold {{ 'text-danger' if book.stock == 0 else 'price' }}">{{ book.stock }}</span>
                         </div>
                     {% else %}
