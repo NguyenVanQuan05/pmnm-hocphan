@@ -16,8 +16,9 @@ from flask import (
 from flask_migrate import Migrate
 from sqlalchemy import func, or_
 
-from forms import ActionForm, BookForm, CategoryForm, CheckoutForm
+from forms import ActionForm, BookForm, CategoryForm, CheckoutForm, StatusForm
 from models import (
+    NEXT_STATUSES,
     ORDER_STATUSES,
     PAYMENT_METHODS,
     STATUS_COLORS,
@@ -40,6 +41,9 @@ SHIPPING_FEE = 20000
 FREE_SHIPPING_FROM = 200000
 LOW_STOCK_LIMIT = 5
 ADMIN_BOOKS_PER_PAGE = 5
+ADMIN_ORDERS_PER_PAGE = 10
+CANCELLED = ORDER_STATUSES[3]
+MAIN_FLOW = ORDER_STATUSES[:3]
 COVER_FOLDER = os.path.join(app.static_folder, "uploads", "covers")
 
 STOCK_FILTERS = {
@@ -190,6 +194,33 @@ def categories_with_counts():
     return db.session.execute(stmt).all()
 
 
+def order_conditions(status, keyword):
+    conditions = []
+    if status:
+        conditions.append(Order.status == status)
+
+    text = keyword.removeprefix("#").strip()
+    if text:
+        options = [Order.customer_name.ilike(f"%{text}%")]
+        if text.isdigit():
+            options.append(Order.phone.ilike(f"%{text}%"))
+            if len(text) <= 9:
+                options.append(Order.id == int(text))
+        conditions.append(or_(*options))
+    return conditions
+
+
+def status_choices(order):
+    return [status for status in NEXT_STATUSES[order.status]
+            if status != CANCELLED]
+
+
+def build_status_form(order):
+    form = StatusForm()
+    form.status.choices = status_choices(order)
+    return form
+
+
 def save_cover_file(file):
     extension = os.path.splitext(file.filename)[1].lower()
     filename = secrets.token_hex(8) + extension
@@ -227,6 +258,11 @@ def inject_helpers():
 @app.template_filter("vnd")
 def format_vnd(value):
     return f"{value:,.0f} đ".replace(",", ".")
+
+
+@app.template_filter("ngay")
+def format_date(value, fmt="%d/%m/%Y"):
+    return value.strftime(fmt)
 
 
 @app.route("/")
@@ -714,6 +750,125 @@ def admin_category_delete(category_id):
     db.session.commit()
     flash(f"Đã xoá danh mục “{category.name}”.", "success")
     return redirect(url_for("admin_categories"))
+
+
+@app.route("/admin/orders")
+def admin_orders():
+    status = request.args.get("status", "")
+    if status not in ORDER_STATUSES:
+        status = ""
+    keyword = request.args.get("q", "").strip()
+
+    counts = dict(db.session.execute(
+        db.select(Order.status, func.count(Order.id))
+        .group_by(Order.status)).all())
+    status_counts = {name: counts.get(name, 0) for name in ORDER_STATUSES}
+    all_count = sum(status_counts.values())
+
+    conditions = order_conditions(status, keyword)
+    stmt = (db.select(Order).where(*conditions)
+            .order_by(Order.created_at.desc(), Order.id.desc()))
+    order_count, order_value = db.session.execute(
+        db.select(func.count(Order.id),
+                  func.coalesce(func.sum(Order.total), 0))
+        .where(*conditions)).one()
+
+    filter_args = {}
+    if status:
+        filter_args["status"] = status
+    if keyword:
+        filter_args["q"] = keyword
+
+    page = request.args.get("page", 1, type=int)
+    orders_page = db.paginate(stmt, page=page, per_page=ADMIN_ORDERS_PER_PAGE,
+                              error_out=False)
+    if orders_page.pages and orders_page.page > orders_page.pages:
+        return redirect(url_for("admin_orders", page=orders_page.pages,
+                                **filter_args))
+
+    return render_template("admin/orders.html", orders_page=orders_page,
+                           filter_args=filter_args,
+                           status=status,
+                           keyword=keyword,
+                           status_counts=status_counts,
+                           all_count=all_count,
+                           order_count=order_count,
+                           order_value=order_value)
+
+
+@app.route("/admin/orders/<int:order_id>")
+def admin_order_detail(order_id):
+    order = db.get_or_404(Order, order_id,
+                          description=f"Không có đơn hàng với mã #{order_id}.")
+    history = db.session.execute(
+        db.select(OrderHistory).filter_by(order_id=order.id)
+        .order_by(OrderHistory.created_at, OrderHistory.id)).scalars().all()
+
+    finished = not NEXT_STATUSES[order.status]
+    remaining_steps = []
+    if not finished:
+        remaining_steps = MAIN_FLOW[MAIN_FLOW.index(order.status) + 1:]
+
+    return render_template("admin/order_detail.html", order=order,
+                           history=history,
+                           finished=finished,
+                           remaining_steps=remaining_steps,
+                           can_cancel=CANCELLED in NEXT_STATUSES[order.status],
+                           status_form=build_status_form(order),
+                           action_form=ActionForm(),
+                           payment_methods=PAYMENT_METHODS)
+
+
+@app.route("/admin/orders/<int:order_id>/status", methods=["POST"])
+def admin_order_status(order_id):
+    order = db.get_or_404(Order, order_id,
+                          description=f"Không có đơn hàng với mã #{order_id}.")
+    form = build_status_form(order)
+    detail_url = url_for("admin_order_detail", order_id=order.id)
+
+    if not form.validate_on_submit():
+        flash("Yêu cầu không hợp lệ, vui lòng thử lại.", "danger")
+        return redirect(detail_url)
+
+    new_status = form.status.data
+    if new_status not in status_choices(order):
+        flash(f"Không thể chuyển đơn #{order.id} từ “{order.status}” "
+              f"sang “{new_status}”.", "danger")
+        return redirect(detail_url)
+
+    order.status = new_status
+    db.session.add(OrderHistory(order=order, status=new_status))
+    db.session.commit()
+    flash(f"Đã chuyển đơn #{order.id} sang “{new_status}”.", "success")
+    return redirect(detail_url)
+
+
+@app.route("/admin/orders/<int:order_id>/cancel", methods=["POST"])
+def admin_order_cancel(order_id):
+    order = db.get_or_404(Order, order_id,
+                          description=f"Không có đơn hàng với mã #{order_id}.")
+    form = ActionForm()
+    detail_url = url_for("admin_order_detail", order_id=order.id)
+
+    if not form.validate_on_submit():
+        flash("Yêu cầu không hợp lệ, vui lòng thử lại.", "danger")
+        return redirect(detail_url)
+
+    if CANCELLED not in NEXT_STATUSES[order.status]:
+        flash(f"Không thể huỷ đơn #{order.id}: đơn đang ở trạng thái "
+              f"“{order.status}”.", "danger")
+        return redirect(detail_url)
+
+    restored = 0
+    for item in order.items:
+        item.book.stock += item.quantity
+        restored += item.quantity
+    order.status = CANCELLED
+    db.session.add(OrderHistory(order=order, status=CANCELLED))
+    db.session.commit()
+    flash(f"Đã huỷ đơn #{order.id} và hoàn {restored} cuốn sách vào kho.",
+          "success")
+    return redirect(detail_url)
 
 
 @app.errorhandler(404)

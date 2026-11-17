@@ -1,0 +1,79 @@
+{% extends "admin/base_admin.html" %}
+{% from "_macros.html" import pagination, status_badge with context %}
+
+{% block title %}Đơn hàng{% endblock %}
+
+{% block admin_content %}
+    <h1 class="h3 mb-3">Đơn hàng</h1>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if not status else '' }}"
+               href="{{ url_for('admin_orders', q=keyword or None) }}">Tất cả ({{ all_count }})</a>
+        </li>
+        {% for name, count in status_counts.items() %}
+            <li class="nav-item">
+                <a class="nav-link {{ 'active' if name == status else '' }}"
+                   href="{{ url_for('admin_orders', status=name, q=keyword or None) }}">{{ name }} ({{ count }})</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <form class="row g-2 mb-3" method="get" action="{{ url_for('admin_orders') }}">
+        {% if status %}
+            <input type="hidden" name="status" value="{{ status }}">
+        {% endif %}
+        <div class="col-md-8">
+            <input class="form-control" type="search" name="q" value="{{ keyword }}"
+                   placeholder="Tìm mã đơn, tên khách, số điện thoại...">
+        </div>
+        <div class="col-md-2 d-grid">
+            <button class="btn btn-outline-primary" type="submit">Tìm</button>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã</th>
+                    <th>Ngày đặt</th>
+                    <th>Khách hàng</th>
+                    <th>Điện thoại</th>
+                    <th class="text-end">Tổng tiền</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders_page.items %}
+                    <tr>
+                        <td>
+                            <a class="fw-semibold text-decoration-none"
+                               href="{{ url_for('admin_order_detail', order_id=order.id) }}">#{{ order.id }}</a>
+                        </td>
+                        <td>{{ order.created_at|ngay }}</td>
+                        <td>
+                            <a class="text-decoration-none"
+                               href="{{ url_for('admin_order_detail', order_id=order.id) }}">{{ order.customer_name }}</a>
+                        </td>
+                        <td>{{ order.phone }}</td>
+                        <td class="text-end">{{ order.total|vnd }}</td>
+                        <td>{{ status_badge(order.status) }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">Không có đơn hàng nào.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="small text-muted">
+            <div>{{ order_count }} đơn · tổng giá trị {{ order_value|vnd }}</div>
+            <div>Bấm vào mã đơn để xem chi tiết.</div>
+        </div>
+        {{ pagination(orders_page, "admin_orders", filter_args) }}
+    </div>
+{% endblock %}

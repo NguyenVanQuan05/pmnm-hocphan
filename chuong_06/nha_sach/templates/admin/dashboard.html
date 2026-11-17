@@ -57,7 +57,10 @@
                     <tbody>
                         {% for order in recent_orders %}
                             <tr>
-                                <td>#{{ order.id }}</td>
+                                <td>
+                                    <a class="fw-semibold text-decoration-none"
+                                       href="{{ url_for('admin_order_detail', order_id=order.id) }}">#{{ order.id }}</a>
+                                </td>
                                 <td>{{ order.customer_name }}</td>
                                 <td class="text-end">{{ order.total|vnd }}</td>
                                 <td>{{ status_badge(order.status) }}</td>
@@ -70,7 +73,7 @@
                     </tbody>
                 </table>
             </div>
-            <a href="#">Xem tất cả đơn hàng →</a>
+            <a href="{{ url_for('admin_orders') }}">Xem tất cả đơn hàng →</a>
         </div>
 
         <div class="col-lg-4">

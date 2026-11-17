@@ -17,7 +17,9 @@
                        href="{{ url_for('admin_books') }}">📚 Sách</a>
                     <a class="nav-link {{ is_active('admin_categories') }} {{ is_active('admin_category_edit') }}"
                        href="{{ url_for('admin_categories') }}">🏷 Danh mục</a>
-                    <a class="nav-link d-flex justify-content-between align-items-center" href="#">
+                    <a class="nav-link d-flex justify-content-between align-items-center
+                              {{ is_active('admin_orders') }} {{ is_active('admin_order_detail') }}"
+                       href="{{ url_for('admin_orders') }}">
                         🧾 Đơn hàng
                         {% if pending_count %}
                             <span class="badge rounded-pill badge-cart">{{ pending_count }}</span>

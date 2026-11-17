@@ -60,6 +60,13 @@ class CheckoutForm(FlaskForm):
     submit = SubmitField("Xác nhận đặt hàng")
 
 
+class StatusForm(FlaskForm):
+    status = SelectField("Chuyển sang", validate_choice=False, validators=[
+        DataRequired(message="Vui lòng chọn trạng thái."),
+    ])
+    submit = SubmitField("Cập nhật")
+
+
 class CategoryForm(FlaskForm):
     name = StringField("Tên danh mục *", validators=[
         DataRequired(message="Vui lòng nhập tên danh mục."),
