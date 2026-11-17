@@ -7,3 +7,24 @@
              src="{{ url_for('static', filename='img/no-cover.svg') }}">
     {% endif %}
 {% endmacro %}
+
+
+{% macro render_field(field) %}
+    <div class="mb-3">
+        {% if field.type == "RadioField" %}
+            <div class="form-label">{{ field.label.text }}</div>
+            {% for subfield in field %}
+                <div class="form-check form-check-inline">
+                    {{ subfield(class="form-check-input" ~ (" is-invalid" if field.errors else "")) }}
+                    {{ subfield.label(class="form-check-label") }}
+                </div>
+            {% endfor %}
+        {% else %}
+            {{ field.label(class="form-label") }}
+            {{ field(class="form-control" ~ (" is-invalid" if field.errors else "")) }}
+        {% endif %}
+        {% for error in field.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+    </div>
+{% endmacro %}

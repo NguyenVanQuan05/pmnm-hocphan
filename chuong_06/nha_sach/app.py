@@ -3,6 +3,7 @@ import os
 import click
 from flask import (
     Flask,
+    abort,
     flash,
     redirect,
     render_template,
@@ -13,8 +14,17 @@ from flask import (
 from flask_migrate import Migrate
 from sqlalchemy import func, or_
 
-from forms import ActionForm
-from models import Book, Category, db
+from forms import ActionForm, CheckoutForm
+from models import (
+    ORDER_STATUSES,
+    PAYMENT_METHODS,
+    Book,
+    Category,
+    Order,
+    OrderHistory,
+    OrderItem,
+    db,
+)
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-chi-dung-khi-phat-trien")
@@ -23,6 +33,8 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 db.init_app(app)
 migrate = Migrate(app, db)
 
+SHIPPING_FEE = 20000
+FREE_SHIPPING_FROM = 200000
 
 SAMPLE_DATA = {
     "Lập trình": {
@@ -74,6 +86,18 @@ SAMPLE_DATA = {
         "books": [],
     },
 }
+
+
+def clean_text(value):
+    if value is None:
+        return None
+    return value.strip() or None
+
+
+def calculate_shipping_fee(subtotal):
+    if subtotal >= FREE_SHIPPING_FROM:
+        return 0
+    return SHIPPING_FEE
 
 
 def get_cart():
@@ -316,6 +340,75 @@ def cart_clear():
     save_cart({})
     flash("Đã xoá toàn bộ giỏ hàng.", "success")
     return redirect(url_for("cart_view"))
+
+
+@app.route("/checkout", methods=["GET", "POST"])
+def checkout():
+    items, subtotal = cart_items()
+    if not items:
+        flash("Giỏ hàng trống, hãy chọn sách trước khi đặt hàng.", "warning")
+        return redirect(url_for("cart_view"))
+
+    shipping_fee = calculate_shipping_fee(subtotal)
+    form = CheckoutForm()
+
+    if form.validate_on_submit():
+        shortages = []
+        for item in items:
+            book = item["book"]
+            if item["quantity"] > book.stock:
+                shortages.append(f"“{book.title}” chỉ còn {book.stock} cuốn")
+        if shortages:
+            flash("Không đủ hàng: " + "; ".join(shortages)
+                  + ". Đơn hàng chưa được tạo, vui lòng sửa lại giỏ hàng.",
+                  "danger")
+            return redirect(url_for("cart_view"))
+
+        order = Order(customer_name=form.customer_name.data.strip(),
+                      phone=form.phone.data.strip(),
+                      email=clean_text(form.email.data),
+                      address=form.address.data.strip(),
+                      note=clean_text(form.note.data),
+                      payment=form.payment.data,
+                      subtotal=subtotal,
+                      shipping_fee=shipping_fee,
+                      total=subtotal + shipping_fee,
+                      status=ORDER_STATUSES[0])
+        db.session.add(order)
+
+        for item in items:
+            book = item["book"]
+            db.session.add(OrderItem(order=order, book=book,
+                                     quantity=item["quantity"],
+                                     unit_price=book.price))
+            book.stock -= item["quantity"]
+
+        db.session.add(OrderHistory(order=order, status=ORDER_STATUSES[0]))
+        db.session.commit()
+
+        save_cart({})
+        my_orders = session.get("my_orders", [])
+        my_orders.append(order.id)
+        session["my_orders"] = my_orders
+        flash(f"Đặt hàng thành công. Mã đơn của bạn là #{order.id}.", "success")
+        return redirect(url_for("order_done", order_id=order.id))
+
+    return render_template("shop/checkout.html", form=form, items=items,
+                           subtotal=subtotal,
+                           shipping_fee=shipping_fee,
+                           total=subtotal + shipping_fee,
+                           free_shipping_from=FREE_SHIPPING_FROM)
+
+
+@app.route("/orders/<int:order_id>")
+def order_done(order_id):
+    if order_id not in session.get("my_orders", []):
+        abort(404, description=f"Không có đơn hàng với mã #{order_id}.")
+
+    order = db.get_or_404(Order, order_id,
+                          description=f"Không có đơn hàng với mã #{order_id}.")
+    return render_template("shop/order_done.html", order=order,
+                           payment_methods=PAYMENT_METHODS)
 
 
 @app.errorhandler(404)

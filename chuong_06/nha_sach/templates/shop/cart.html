@@ -79,7 +79,7 @@
                 {{ action_form.hidden_tag() }}
                 <button class="btn btn-outline-danger" type="submit">Xoá giỏ hàng</button>
             </form>
-            <a class="btn btn-primary ms-auto" href="#">Đặt hàng →</a>
+            <a class="btn btn-primary ms-auto" href="{{ url_for('checkout') }}">Đặt hàng →</a>
         </div>
     {% else %}
         <h1 class="h3 mb-3">Giỏ hàng</h1>

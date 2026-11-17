@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field %}
+
+{% block title %}Thông tin khách hàng{% endblock %}
+
+{% block content %}
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <h1 class="h3 mb-3">Thông tin khách hàng</h1>
+
+            <form method="post" action="{{ url_for('checkout') }}" novalidate>
+                {{ form.hidden_tag() }}
+                {{ render_field(form.customer_name) }}
+                <div class="row">
+                    <div class="col-md-6">{{ render_field(form.phone) }}</div>
+                    <div class="col-md-6">{{ render_field(form.email) }}</div>
+                </div>
+                {{ render_field(form.address) }}
+                {{ render_field(form.note) }}
+                {{ render_field(form.payment) }}
+
+                <div class="d-flex align-items-center gap-3">
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('cart_view') }}">← Quay lại giỏ hàng</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-3">Đơn hàng của bạn</h2>
+                    {% for item in items %}
+                        <div class="d-flex justify-content-between gap-2 small mb-2">
+                            <span>{{ item.book.title }} × {{ item.quantity }}</span>
+                            <span class="text-nowrap">{{ item.line_total|vnd }}</span>
+                        </div>
+                    {% endfor %}
+                    <hr>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Tạm tính</span>
+                        <span>{{ subtotal|vnd }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Phí giao hàng</span>
+                        {% if shipping_fee == 0 %}
+                            <span class="text-success">Miễn phí</span>
+                        {% else %}
+                            <span>{{ shipping_fee|vnd }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="small text-muted">Miễn phí khi tạm tính từ {{ free_shipping_from|vnd }}</div>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fw-bold">Tổng thanh toán</span>
+                        <span class="price fs-4">{{ total|vnd }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

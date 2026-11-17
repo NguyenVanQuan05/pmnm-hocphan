@@ -6,6 +6,11 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 ORDER_STATUSES = ["Chờ xác nhận", "Đang giao", "Hoàn tất", "Đã huỷ"]
 
+PAYMENT_METHODS = {
+    "cod": "Tiền mặt khi nhận hàng",
+    "bank": "Chuyển khoản",
+}
+
 NEXT_STATUSES = {
     "Chờ xác nhận": ["Đang giao", "Đã huỷ"],
     "Đang giao": ["Hoàn tất", "Đã huỷ"],
