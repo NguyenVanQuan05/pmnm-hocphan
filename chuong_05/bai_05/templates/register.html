@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "_form_helpers.html" import render_field %}
+
+{% block title %}Đăng ký tài khoản{% endblock %}
+
+{% block content %}
+    <form method="post" action="{{ url_for('register') }}" novalidate>
+        {{ form.hidden_tag() }}
+        {{ render_field(form.username) }}
+        {{ render_field(form.email) }}
+        {{ render_field(form.password) }}
+        {{ render_field(form.confirm) }}
+        {{ render_field(form.accept) }}
+        <div class="actions">
+            {{ form.submit() }}
+        </div>
+    </form>
+{% endblock %}

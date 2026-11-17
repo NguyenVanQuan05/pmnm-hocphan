@@ -1,0 +1,13 @@
+{% macro render_field(field) %}
+    <div class="field">
+        {% if field.type == "BooleanField" %}
+            <label>{{ field() }} {{ field.label.text }}</label>
+        {% else %}
+            {{ field.label }}
+            {{ field() }}
+        {% endif %}
+        {% for error in field.errors %}
+            <p class="error">{{ error }}</p>
+        {% endfor %}
+    </div>
+{% endmacro %}

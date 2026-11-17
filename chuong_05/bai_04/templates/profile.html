@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}Trang cá nhân{% endblock %}
+
+{% block content %}
+    <div class="lesson-list">
+        <p class="info-label">Tên đăng nhập</p>
+        <p class="info-value">{{ session["user"] }}</p>
+    </div>
+{% endblock %}

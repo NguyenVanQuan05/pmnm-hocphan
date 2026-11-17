@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tính điểm học phần</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main>
+        <h1>Tính điểm học phần</h1>
+        {% include "_navbar.html" %}
+        <form method="post" action="{{ url_for('grade_calculator') }}">
+            <table>
+                <tr>
+                    <th>Chuyên cần (10%)</th>
+                    <th>Giữa kỳ (30%)</th>
+                    <th>Cuối kỳ (60%)</th>
+                    <th>Tổng kết</th>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" name="cc" value="{{ values.cc }}">
+                        {% if errors.cc %}<p class="error">{{ errors.cc }}</p>{% endif %}
+                    </td>
+                    <td>
+                        <input type="text" name="gk" value="{{ values.gk }}">
+                        {% if errors.gk %}<p class="error">{{ errors.gk }}</p>{% endif %}
+                    </td>
+                    <td>
+                        <input type="text" name="ck" value="{{ values.ck }}">
+                        {% if errors.ck %}<p class="error">{{ errors.ck }}</p>{% endif %}
+                    </td>
+                    <td>
+                        {% if result %}
+                            <p class="result">{{ result }}</p>
+                        {% else %}
+                            <span class="empty-result">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+            <div class="actions">
+                <button type="submit">Tính điểm</button>
+            </div>
+        </form>
+    </main>
+</body>
+</html>
