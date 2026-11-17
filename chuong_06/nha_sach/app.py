@@ -1,7 +1,15 @@
 import os
 
 import click
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import (
+    Flask,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from flask_migrate import Migrate
 from sqlalchemy import func, or_
 
@@ -76,6 +84,13 @@ def save_cart(cart):
     session["cart"] = cart
 
 
+def parse_quantity(value):
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
 def safe_next_url(target):
     if (target and target.startswith("/")
             and not target.startswith("//")
@@ -132,7 +147,13 @@ def book_list():
 def book_detail(book_id):
     book = db.get_or_404(Book, book_id,
                          description=f"Không có sách với id = {book_id}.")
-    return render_template("shop/book_detail.html", book=book)
+    in_cart = get_cart().get(str(book.id), 0)
+    max_quantity = max(book.stock - in_cart, 0)
+    action_form = ActionForm()
+    return render_template("shop/book_detail.html", book=book,
+                           in_cart=in_cart,
+                           max_quantity=max_quantity,
+                           action_form=action_form)
 
 
 @app.route("/cart/add/<int:book_id>", methods=["POST"])
@@ -152,15 +173,27 @@ def cart_add(book_id):
 
     cart = get_cart()
     in_cart = cart.get(str(book.id), 0)
-    if in_cart + 1 > book.stock:
+    max_quantity = book.stock - in_cart
+    if max_quantity <= 0:
         flash(f"Không thể thêm “{book.title}”: giỏ đã có {in_cart} cuốn, "
               f"tồn kho chỉ còn {book.stock}.", "warning")
         return redirect(next_url)
 
-    cart[str(book.id)] = in_cart + 1
+    quantity = parse_quantity(request.form.get("quantity", "1"))
+    if quantity is None or quantity < 1 or quantity > max_quantity:
+        flash(f"Số lượng không hợp lệ: chỉ được thêm từ 1 đến {max_quantity} "
+              f"cuốn “{book.title}”.", "danger")
+        return redirect(next_url)
+
+    cart[str(book.id)] = in_cart + quantity
     save_cart(cart)
-    flash(f"Đã thêm 1 × “{book.title}” vào giỏ hàng.", "success")
+    flash(f"Đã thêm {quantity} × “{book.title}” vào giỏ hàng.", "success")
     return redirect(next_url)
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template("404.html", error=error), 404
 
 
 @app.cli.command("seed")

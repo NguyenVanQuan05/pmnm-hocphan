@@ -4,16 +4,83 @@
 {% block title %}{{ book.title }}{% endblock %}
 
 {% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('book_list') }}">Sách</a></li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('book_list', category_id=book.category.id) }}">{{ book.category.name }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ book.title }}</li>
+        </ol>
+    </nav>
+
     <div class="row g-4">
         <div class="col-md-4">
             {{ book_cover(book, "img-fluid rounded book-cover-lg") }}
         </div>
         <div class="col-md-8">
             <h1 class="h3">{{ book.title }}</h1>
-            <p class="text-muted">Tác giả: {{ book.author }}</p>
             <p class="price fs-4">{{ book.price|vnd }}</p>
-            <p>Còn {{ book.stock }} cuốn</p>
-            <a class="btn btn-outline-primary" href="{{ url_for('book_list') }}">← Danh sách sách</a>
+
+            <dl class="row">
+                <dt class="col-sm-3">Tác giả</dt>
+                <dd class="col-sm-9">{{ book.author }}</dd>
+
+                <dt class="col-sm-3">Nhà xuất bản</dt>
+                <dd class="col-sm-9">{{ book.publisher or "–" }}</dd>
+
+                <dt class="col-sm-3">Năm xuất bản</dt>
+                <dd class="col-sm-9">{{ book.year or "–" }}</dd>
+
+                <dt class="col-sm-3">Danh mục</dt>
+                <dd class="col-sm-9">
+                    <a href="{{ url_for('book_list', category_id=book.category.id) }}">{{ book.category.name }}</a>
+                </dd>
+
+                <dt class="col-sm-3">Tồn kho</dt>
+                <dd class="col-sm-9">
+                    {% if book.stock > 0 %}
+                        <span class="text-success">● Còn {{ book.stock }} cuốn</span>
+                    {% else %}
+                        <span class="text-danger">Hết hàng</span>
+                    {% endif %}
+                </dd>
+            </dl>
+
+            <p>{{ book.description or "Chưa có mô tả." }}</p>
+
+            {% set locked = max_quantity == 0 %}
+            <form method="post" action="{{ url_for('cart_add', book_id=book.id) }}" novalidate>
+                {{ action_form.hidden_tag() }}
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+
+                <label class="form-label" for="quantity">Số lượng</label>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <div class="input-group quantity-group">
+                        <button class="btn btn-outline-primary" type="button"
+                                onclick="document.getElementById('quantity').stepDown()"
+                                {{ 'disabled' if locked else '' }}>−</button>
+                        <input class="form-control text-center" type="number" id="quantity" name="quantity"
+                               value="1" min="1" max="{{ max_quantity }}"
+                               {{ 'disabled' if locked else '' }}>
+                        <button class="btn btn-outline-primary" type="button"
+                                onclick="document.getElementById('quantity').stepUp()"
+                                {{ 'disabled' if locked else '' }}>+</button>
+                    </div>
+                    <small class="text-muted">tối đa {{ max_quantity }} (đã có {{ in_cart }} trong giỏ)</small>
+                </div>
+
+                <button class="btn btn-primary" type="submit" {{ 'disabled' if locked else '' }}>🛒 Thêm vào giỏ hàng</button>
+                {% if locked %}
+                    <p class="text-danger small mt-2">
+                        {% if book.stock == 0 %}
+                            Sách đã hết hàng.
+                        {% else %}
+                            Giỏ đã có {{ in_cart }} cuốn, bằng số tồn kho, không thêm được nữa.
+                        {% endif %}
+                    </p>
+                {% endif %}
+            </form>
         </div>
     </div>
 {% endblock %}
