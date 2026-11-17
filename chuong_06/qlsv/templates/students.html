@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách sinh viên{% endblock %}
+
+{% block content %}
+    <div class="content">
+        <table>
+            <tr>
+                <th class="stt">STT</th>
+                <th class="mssv">MSSV</th>
+                <th class="left">Họ và tên</th>
+                <th class="gpa">GPA</th>
+            </tr>
+            {% for s in students %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ s.mssv }}</td>
+                    <td class="left">{{ s.name }}</td>
+                    <td>{{ s.gpa }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4">Chưa có sinh viên nào.</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
