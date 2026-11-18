@@ -1,0 +1,94 @@
+{% extends "admin/base_admin.html" %}
+{% from "_macros.html" import book_cover, pagination %}
+
+{% block title %}Quản lý sách{% endblock %}
+
+{% block admin_content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Sách ({{ books_page.total }})</h1>
+        <a class="btn btn-primary" href="{{ url_for('admin_book_create') }}">+ Thêm sách</a>
+    </div>
+
+    <form class="row g-2 mb-3" method="get" action="{{ url_for('admin_books') }}">
+        <div class="col-md-5">
+            <input class="form-control" type="search" name="q" value="{{ keyword }}"
+                   placeholder="Tìm tên sách, tác giả...">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="category_id">
+                <option value="">Mọi danh mục</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}"
+                            {{ 'selected' if category.id == selected_category_id else '' }}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" name="stock">
+                <option value="">Tồn kho</option>
+                {% for value, label in stock_filters.items() %}
+                    <option value="{{ value }}" {{ 'selected' if value == stock else '' }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button class="btn btn-outline-primary" type="submit">Lọc</button>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th></th>
+                    <th>Tên sách / Tác giả</th>
+                    <th>Danh mục</th>
+                    <th class="text-end">Giá</th>
+                    <th class="text-center">Tồn</th>
+                    <th class="text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books_page.items %}
+                    {% set locked = book.id in ordered_ids %}
+                    <tr>
+                        <td>{{ book_cover(book, "cart-thumb rounded") }}</td>
+                        <td>
+                            <div class="fw-semibold">{{ book.title }}</div>
+                            <div class="small text-muted">{{ book.author }}</div>
+                        </td>
+                        <td>{{ book.category.name }}</td>
+                        <td class="text-end">{{ book.price|vnd }}</td>
+                        <td class="text-center {{ 'text-danger fw-bold' if book.stock == 0 else '' }}">{{ book.stock }}</td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a class="btn btn-sm btn-link text-decoration-none"
+                                   href="{{ url_for('admin_book_edit', book_id=book.id) }}">Sửa</a>
+                                <form method="post"
+                                      action="{{ url_for('admin_book_delete', book_id=book.id) }}"
+                                      onsubmit="return confirm('Bạn chắc chắn muốn xoá sách này?');">
+                                    {{ action_form.hidden_tag() }}
+                                    <input type="hidden" name="next" value="{{ request.full_path }}">
+                                    <button class="btn btn-sm btn-link text-danger text-decoration-none" type="submit"
+                                            {{ 'disabled' if locked else '' }}
+                                            title="{{ 'Sách đã có trong đơn hàng, không xoá được' if locked else '' }}">Xoá</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">Không có sách nào.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span class="small text-muted">
+            Hiển thị {{ books_page.first }} – {{ books_page.last }} / {{ books_page.total }} sách
+        </span>
+        {{ pagination(books_page, "admin_books", filter_args) }}
+    </div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_macros.html" import book_cover %}
+
+{% block title %}Danh sách sách{% endblock %}
+
+{% block content %}
+    <form class="row g-2 mb-4" method="get" action="{{ url_for('book_list') }}">
+        <div class="col-md-7">
+            <input class="form-control" type="search" name="q" value="{{ keyword }}"
+                   placeholder="Tìm tên sách, tác giả...">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="category_id">
+                <option value="">Mọi danh mục</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}"
+                            {{ 'selected' if category.id == selected_category_id else '' }}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button class="btn btn-primary" type="submit">Lọc</button>
+        </div>
+    </form>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+        {% for book in books %}
+            <div class="col">
+                <div class="card h-100">
+                    {{ book_cover(book, "card-img-top book-cover") }}
+                    <div class="card-body d-flex flex-column">
+                        <h2 class="h6 card-title">
+                            <a class="text-decoration-none" href="{{ url_for('book_detail', book_id=book.id) }}">{{ book.title }}</a>
+                        </h2>
+                        <div class="d-flex justify-content-between align-items-baseline mb-3">
+                            <span class="price">{{ book.price|vnd }}</span>
+                            {% if book.stock > 0 %}
+                                <small class="text-muted">Còn {{ book.stock }}</small>
+                            {% endif %}
+                        </div>
+
+                        <form class="mt-auto" method="post"
+                              action="{{ url_for('cart_add', book_id=book.id) }}">
+                            {{ action_form.hidden_tag() }}
+                            <input type="hidden" name="next" value="{{ request.full_path }}">
+                            {% if book.stock > 0 %}
+                                <button class="btn btn-primary w-100" type="submit">+ Thêm vào giỏ</button>
+                            {% else %}
+                                <button class="btn btn-secondary w-100" type="submit" disabled>Hết hàng</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <p class="text-muted">Không tìm thấy sách phù hợp.</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

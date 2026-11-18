@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% from "_macros.html" import book_cover %}
+
+{% block title %}Giỏ hàng{% endblock %}
+
+{% block content %}
+    {% if items %}
+        <h1 class="h3 mb-3">Giỏ hàng ({{ items|length }} đầu sách)</h1>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sách</th>
+                        <th class="text-end">Đơn giá</th>
+                        <th class="text-center">Số lượng</th>
+                        <th class="text-end">Thành tiền</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    {{ book_cover(item.book, "cart-thumb rounded") }}
+                                    <div>
+                                        <a class="text-decoration-none"
+                                           href="{{ url_for('book_detail', book_id=item.book.id) }}">{{ item.book.title }}</a>
+                                        {% if item.quantity > item.book.stock %}
+                                            <div class="small text-danger">Chỉ còn {{ item.book.stock }} cuốn</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-end">{{ item.book.price|vnd }}</td>
+                            <td>
+                                <div class="d-flex justify-content-center align-items-center gap-2">
+                                    <form method="post"
+                                          action="{{ url_for('cart_decrease', book_id=item.book.id) }}">
+                                        {{ action_form.hidden_tag() }}
+                                        <button class="btn btn-sm btn-outline-primary" type="submit">−</button>
+                                    </form>
+                                    <span class="cart-qty">{{ item.quantity }}</span>
+                                    <form method="post"
+                                          action="{{ url_for('cart_increase', book_id=item.book.id) }}">
+                                        {{ action_form.hidden_tag() }}
+                                        <button class="btn btn-sm btn-outline-primary" type="submit"
+                                                {{ 'disabled' if item.quantity >= item.book.stock else '' }}>+</button>
+                                    </form>
+                                </div>
+                            </td>
+                            <td class="text-end fw-semibold">{{ item.line_total|vnd }}</td>
+                            <td class="text-end">
+                                <form method="post"
+                                      action="{{ url_for('cart_remove', book_id=item.book.id) }}">
+                                    {{ action_form.hidden_tag() }}
+                                    <button class="btn btn-sm btn-link text-danger text-decoration-none"
+                                            type="submit">✕ Xoá</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end">Tổng cộng</td>
+                        <td class="text-end price fs-5">{{ total|vnd }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary" href="{{ url_for('book_list') }}">← Tiếp tục mua sách</a>
+            <form method="post" action="{{ url_for('cart_clear') }}"
+                  onsubmit="return confirm('Bạn chắc chắn muốn xoá toàn bộ giỏ hàng?');">
+                {{ action_form.hidden_tag() }}
+                <button class="btn btn-outline-danger" type="submit">Xoá giỏ hàng</button>
+            </form>
+            <a class="btn btn-primary ms-auto" href="{{ url_for('checkout') }}">Đặt hàng →</a>
+        </div>
+    {% else %}
+        <h1 class="h3 mb-3">Giỏ hàng</h1>
+        <div class="text-center py-5">
+            <p class="fs-5">Giỏ hàng trống</p>
+            <a class="btn btn-primary" href="{{ url_for('book_list') }}">← Xem danh sách sách</a>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,59 @@
+.site-navbar {
+    background-color: #0b3a75;
+}
+
+.badge-cart {
+    background-color: #f97316;
+}
+
+.admin-sidebar {
+    background-color: #1e293b;
+    min-height: 70vh;
+}
+
+.admin-sidebar .nav-link {
+    color: #cbd5e1;
+}
+
+.admin-sidebar .nav-link.active {
+    background-color: #334155;
+    color: #fff;
+}
+
+.price {
+    color: #ea580c;
+    font-weight: 600;
+}
+
+.book-cover {
+    height: 220px;
+    object-fit: contain;
+    background-color: #e9ecef;
+}
+
+.breadcrumb {
+    --bs-breadcrumb-divider: "›";
+}
+
+.quantity-group {
+    width: 9rem;
+}
+
+.cart-thumb {
+    width: 48px;
+    height: 64px;
+    object-fit: contain;
+    background-color: #e9ecef;
+}
+
+.cart-qty {
+    min-width: 2rem;
+    text-align: center;
+}
+
+.book-cover-lg {
+    width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    background-color: #e9ecef;
+}

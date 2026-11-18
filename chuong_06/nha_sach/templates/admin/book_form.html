@@ -1,0 +1,51 @@
+{% extends "admin/base_admin.html" %}
+{% from "_macros.html" import book_cover, render_field %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block admin_content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_books') }}">Sách</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ breadcrumb }}</li>
+        </ol>
+    </nav>
+    <h1 class="h3 mb-3">{{ title }}</h1>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="row g-4">
+            <div class="col-lg-8">
+                {{ render_field(form.title) }}
+                {{ render_field(form.author) }}
+                <div class="row">
+                    <div class="col-md-6">{{ render_field(form.category_id) }}</div>
+                    <div class="col-md-6">{{ render_field(form.year) }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">{{ render_field(form.price) }}</div>
+                    <div class="col-md-6">{{ render_field(form.stock) }}</div>
+                </div>
+                {{ render_field(form.publisher) }}
+                {{ render_field(form.description) }}
+            </div>
+
+            <div class="col-lg-4">
+                {% if book %}
+                    <div class="form-label">Ảnh hiện tại</div>
+                    {{ book_cover(book, "img-fluid rounded book-cover-lg mb-3") }}
+                {% endif %}
+                {{ render_field(form.cover_file) }}
+                <div class="small text-muted">
+                    JPG, PNG, WEBP · tối đa 2 MB
+                    {% if book %}<br>Không chọn: giữ ảnh cũ{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+            {{ form.submit(class="btn btn-primary") }}
+            <a class="btn btn-outline-primary" href="{{ cancel_url }}">Huỷ</a>
+        </div>
+    </form>
+{% endblock %}

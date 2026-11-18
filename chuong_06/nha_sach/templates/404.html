@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}Không tìm thấy trang{% endblock %}
+
+{% block content %}
+    <h1 class="h3">Không tìm thấy trang</h1>
+    <p class="text-muted">{{ error.description }}</p>
+    <a class="btn btn-primary" href="{{ url_for('book_list') }}">← Về danh sách sách</a>
+{% endblock %}

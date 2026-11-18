@@ -1,0 +1,124 @@
+{% extends "admin/base_admin.html" %}
+{% from "_macros.html" import render_field, status_badge with context %}
+
+{% block title %}Đơn hàng #{{ order.id }}{% endblock %}
+
+{% block admin_content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_orders') }}">Đơn hàng</a></li>
+            <li class="breadcrumb-item active" aria-current="page">#{{ order.id }}</li>
+        </ol>
+    </nav>
+    <h1 class="h3 mb-3">Đơn hàng #{{ order.id }} · {{ order.created_at|ngay("%d/%m/%Y %H:%M") }}</h1>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-3">Khách hàng</h2>
+                    <p class="mb-1">{{ order.customer_name }} · {{ order.phone }}</p>
+                    {% if order.email %}
+                        <p class="mb-1">{{ order.email }}</p>
+                    {% endif %}
+                    <p class="mb-1">{{ order.address }}</p>
+                    <p class="mb-1">Thanh toán: {{ payment_methods[order.payment] }}</p>
+                    {% if order.note %}
+                        <p class="mb-0 small text-muted">Ghi chú: {{ order.note }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sách</th>
+                            <th class="text-end">Đơn giá</th>
+                            <th class="text-center">SL</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items %}
+                            <tr>
+                                <td>{{ item.book.title }}</td>
+                                <td class="text-end">{{ item.unit_price|vnd }}</td>
+                                <td class="text-center">{{ item.quantity }}</td>
+                                <td class="text-end">{{ (item.unit_price * item.quantity)|vnd }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end">Tạm tính</td>
+                            <td class="text-end">{{ order.subtotal|vnd }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end">Phí giao hàng</td>
+                            <td class="text-end">
+                                {% if order.shipping_fee == 0 %}
+                                    <span class="text-success">Miễn phí</span>
+                                {% else %}
+                                    {{ order.shipping_fee|vnd }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">Tổng cộng</td>
+                            <td class="text-end price fs-5">{{ order.total|vnd }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <p class="small text-muted">Đơn giá là giá tại thời điểm đặt.</p>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-3">Trạng thái</h2>
+                    <p>{{ status_badge(order.status) }}</p>
+
+                    {% if finished %}
+                        <p class="text-muted mb-0">Đơn đã kết thúc, không đổi được nữa.</p>
+                    {% else %}
+                        {% if status_form.status.choices %}
+                            <form method="post" novalidate
+                                  action="{{ url_for('admin_order_status', order_id=order.id) }}">
+                                {{ status_form.hidden_tag() }}
+                                {{ render_field(status_form.status) }}
+                                {{ status_form.submit(class="btn btn-primary w-100") }}
+                            </form>
+                        {% endif %}
+                        {% if can_cancel %}
+                            <form class="mt-2" method="post"
+                                  action="{{ url_for('admin_order_cancel', order_id=order.id) }}"
+                                  onsubmit="return confirm('Bạn chắc chắn muốn huỷ đơn này?');">
+                                {{ action_form.hidden_tag() }}
+                                <button class="btn btn-outline-danger w-100" type="submit">Huỷ đơn</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-3">Lịch sử</h2>
+                    <ul class="list-unstyled mb-0">
+                        {% for entry in history %}
+                            <li class="mb-1">
+                                {{ entry.created_at|ngay("%d/%m %H:%M") }} ·
+                                {{ "Đặt hàng" if loop.first else entry.status }}
+                            </li>
+                        {% endfor %}
+                        {% for step in remaining_steps %}
+                            <li class="mb-1 text-secondary">{{ step }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
